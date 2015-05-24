@@ -1,0 +1,11 @@
+svg {
+  float: left;
+  border: solid 1px #ccc;
+  height:98vh;
+  width: 50vw;
+}
+
+circle {
+  color: #000000;
+  opacity: 0.65;
+}

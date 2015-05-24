@@ -1,0 +1,1 @@
+- Make circles clickable and draggable
