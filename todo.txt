@@ -1,1 +1,2 @@
-- Make circles clickable and draggable
+x Make circles clickable and draggable
+- Allow user to remove circle.

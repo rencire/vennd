@@ -9,3 +9,14 @@ circle {
   color: #000000;
   opacity: 0.65;
 }
+
+.selected {
+  fill: red;
+}
+
+.controls {
+  float:right;
+  width: 400px;
+  height: 200px;
+  background-color: orange;
+}
