@@ -9,13 +9,28 @@ controls.append("button")
     .text('remove selected')
     .on('click', removeSelected);
 
-var svg = d3.select("body").append("div")
-    .append("svg")
+var main_div = d3.select("body").append("div")
+    .on('drop', handleFiles);
+
+// var input = main_div.append('input')
+//     .attr('id', 'dropbox')
+//     .attr('type', 'file');
+    // .on('click', handleClickTest)
+    // .on("drop", handleFiles);
+
+var svg = main_div.append("svg")
+    // .on("dragenter", dragenter)
+    // .on("dragover", dragover)
+    // .attr('id', 'dropbox')
     .on("mousedown", addCircle);
+
+    // .on('click', handleClickTest);
+
 
 var width = parseInt(svg.style('width')),
     height = parseInt(svg.style('height')),
     radius = 80;
+
 
 
 var id_cnt = 0;
@@ -38,78 +53,52 @@ addEvent(window, 'resize', function() {
     width = parseInt(svg.style('width'));
 });
 
+// initialize empty data on page load
 var coordinates = [];
-// d refers to the datum bound to svg(?)
-// So, how does 'this' (circle element) know the data of its parent, 'svg'?
-//
-// Looks like circle has a __data__ reference to parent svg's datum...
-//
-// How does it work?!
-// Answer: child element inherits data from parent.
-//
-//
 
-// replace custom reduce fn with Array's built-in fn later.
-function reduce(a,combine, start) {
-    var result = start;
-    a.forEach(function(v) {
-        result = combine(result, v);
-    });
-    return result;
+function stopBubbleUp() {
+    d3.event.stopPropagation();
+}
+
+function inBounds(coord) {
+    return coord.x >= 0 && coord.x <= width && coord.y >= 0 && coord.y <= height;
 }
 
 
 function isFreeArea(coord) {
-    // check if coord is within the area of 
-    // each circle in coordinates list.
-    // If so, then return false
-    // else return true
-    return reduce(coordinates, function(memo, value) {
-        var outside_circle = (Math.pow((coord.x - value.x),2) + 
-                         Math.pow((coord.y - value.y),2)) > Math.pow(radius,2);
-        return memo && outside_circle;
-    }, true);
+    return coordinates.every(function(c) {
+        return (Math.pow((coord.x - c.x),2) + Math.pow((coord.y - c.y),2)) > Math.pow(radius,2);
+    });
 }
 
 
-
+// TODO break this up into separate operations if needed (update, enter, exit)
 function renderBoard() {
-    console.log(coordinates);
     var circle = svg.selectAll('circle').data(coordinates, function(d){return d.id;});
 
     // update
-    // NOTE: x, y coords are updated automatically by Drag behavior(?)
-    circle.classed('selected', function(d){return d.selected;});
+    // NOTE: x, y coords are updated automatically in #dragmove
+    //      'selected' also upddated in #toggleSelected
 
     // enter
     circle.enter().append('circle')
         .attr("r", radius)
         .attr("cx", function(d){return d.x;})
         .attr("cy", function(d){return d.y;})
-        // .attr("_id", function(d){return d.id;})
         .classed('selected', function(d){return d.selected;})
         .on('click', toggleSelected)
+        .on('mousedown', stopBubbleUp)
         .call(dragBehavior);
 
     // exit
     circle.exit().remove();
 }
 
-function toggleSelected() {
-    if (d3.event.defaultPrevented) return; // click suppressed
-
-    // var id = parseInt(d3.select(this).attr('_id'));
-    var selected_id = d3.select(this).datum().id;
-    // find coord in data, mark selected as true
-    coordinates.forEach(function(v) {
-        if ( v.id === selected_id) {
-            v.selected = !v.selected;
-        }
-    });
-    // d3.select(this).classed('selected', function(){
-    //     return ! d3.select(this).classed('selected');
-    // });
-    renderBoard();
+function toggleSelected(d) {
+    if (d3.event.defaultPrevented) return; // click suppressed by drag behavior
+    d3.event.stopPropagation();
+    d3.select(this)
+        .classed('selected', d.selected = !d.selected);
 }
 
 function dragmove(d) {
@@ -131,23 +120,28 @@ function addCircle() {
     // check if not clicking an area with circle
     var point = d3.mouse(this);
     var coord = {id: id_cnt, x: point[0], y: point[1], selected: false};
-    if (isFreeArea(coord)) {
-        coordinates.push(coord);
-        //TODO Q: How to drag a shape after creating it?
-        // A: don't implement this feature for now...
-        console.log(coord);
-        id_cnt += 1;
-        renderBoard();
-    } else {
-        // console.log('not in free area');
+
+    if (!inBounds(coord)) {
+        console.log('ERROR: Coordinates out of bounds.') ;
+        return;
     }
+    if (!isFreeArea(coord)) {
+        // This block will never execute from UI because 'click' event handlers for 'circles' will stopDefaultPropagation for parent 'click' event handlers.
+        // Still useful if people are messing with the console to add circles.
+        console.log("ERROR: Circle already exists in that spot.");
+        return;
+    }
+    coordinates.push(coord);
+    //TODO Q: How to drag a shape after creating it?
+    // A: don't implement this feature for now...
+    id_cnt += 1;
+    renderBoard();
 }
 
 function removeSelected() {
     coordinates = coordinates.filter(function(d){
         return !d.selected;
     }); 
-    // d3.selectAll('circle').data(coordinates).exit().remove(); renderBoard();
     renderBoard();
 }
 
@@ -156,15 +150,49 @@ function clearBoard() {
     renderBoard();
 }
 
-// function removeCircle(d) {
-//     coordinates = coordinates.filter(function(ele,i) {
-//         return ele.x !== d.x && ele.y !== d.y;
-//     }); 
-// }
 
-// var svg2 = d3.select("#test")
-//         .attr("width", width)
-//         .attr("height", height);
-//         .on("click", function() {
-//             console.log(d3.mouse(svg2.node));
-//         });
+
+// File Input
+// var inputElement = document.getElementById("input");
+// // var inputElement = d3.select("input");
+// inputElement.addEventListener("change", handleFiles, false);
+// function handleFiles() {
+//     var fileList = this.files;
+//     console.log(fileList);
+// }
+//
+// var dropbox;
+// dropbox = document.getElementById("dropbox");
+// dropbox.addEventListener("dragenter", dragenter, false);
+// dropbox.addEventListener("dragover", dragover, false);
+// dropbox.addEventListener("drop", drop, false);
+//
+// function dragenter(e) {
+//     e.stopPropogation();
+//     e.preventDefault();
+// }
+//
+// function dragover(e) {
+//     e.stopPropogation();
+//     e.preventDefault();
+// }
+//
+// function drop(e) {
+//     e.stopPropagation();
+//     e.preventDefault();
+//
+//     console.log('registered drop');
+//     var dt = e.dataTransfer;
+//     var files = dt.files;
+//     handleFiles(files);
+// }
+//
+// function handleFiles(files) {
+//     console.log(files.length);
+// }
+// function handleClickTest() {
+//     console.log('clicked on input');
+// }
+//
+// // http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
+//
