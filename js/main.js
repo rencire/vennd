@@ -1,4 +1,13 @@
-var controls = d3.select("body").append("div")
+// main div
+var main_div = d3.select("body").append("div")
+    .attr('id', 'main');
+
+
+// visuals
+var visuals = main_div.append('div')
+    .attr('id', 'visuals');
+
+var controls = visuals.append("div")
     .classed('controls', true);
 
 controls.append("button")
@@ -9,19 +18,9 @@ controls.append("button")
     .text('remove selected')
     .on('click', removeSelected);
 
-var main_div = d3.select("body").append("div")
-    .on('drop', handleFiles);
-
-// var input = main_div.append('input')
-//     .attr('id', 'dropbox')
-//     .attr('type', 'file');
-    // .on('click', handleClickTest)
-    // .on("drop", handleFiles);
-
-var svg = main_div.append("svg")
+var svg = visuals.append("svg")
     // .on("dragenter", dragenter)
     // .on("dragover", dragover)
-    // .attr('id', 'dropbox')
     .on("mousedown", addCircle);
 
     // .on('click', handleClickTest);
@@ -30,6 +29,16 @@ var svg = main_div.append("svg")
 var width = parseInt(svg.style('width')),
     height = parseInt(svg.style('height')),
     radius = 80;
+
+// files
+var files = main_div.append('div')
+    .attr('id', 'files');
+
+var input = files.append('input')
+    .attr('class', 'dropbox')
+    .attr('type', 'file')
+    .on("drop", drop);
+
 
 
 
@@ -160,39 +169,43 @@ function clearBoard() {
 //     var fileList = this.files;
 //     console.log(fileList);
 // }
+
+// Vanilla JS for binding drop events
+// var dropboxes;
+// dropboxes = document.getElementsByClassName("dropbox");
+// dropboxes.forEach(function(e) {
+//     e.addEventListener("dragenter", dragenter, false);
+//     e.addEventListener("dragover", dragover, false);
+//     e.addEventListener("drop", drop, false);
 //
-// var dropbox;
-// dropbox = document.getElementById("dropbox");
-// dropbox.addEventListener("dragenter", dragenter, false);
-// dropbox.addEventListener("dragover", dragover, false);
-// dropbox.addEventListener("drop", drop, false);
-//
-// function dragenter(e) {
-//     e.stopPropogation();
-//     e.preventDefault();
-// }
-//
-// function dragover(e) {
-//     e.stopPropogation();
-//     e.preventDefault();
-// }
-//
-// function drop(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-//
-//     console.log('registered drop');
-//     var dt = e.dataTransfer;
-//     var files = dt.files;
-//     handleFiles(files);
-// }
-//
-// function handleFiles(files) {
-//     console.log(files.length);
-// }
-// function handleClickTest() {
-//     console.log('clicked on input');
-// }
-//
-// // http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
-//
+// });
+
+function dragenter(e) {
+    e.stopPropogation();
+    e.preventDefault();
+}
+
+function dragover(e) {
+    e.stopPropogation();
+    e.preventDefault();
+}
+
+function drop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    console.log('registered drop');
+    var dt = e.dataTransfer;
+    var files = dt.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    console.log(files.length);
+}
+function handleClickTest() {
+    console.log('clicked on input');
+}
+
+// http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
+

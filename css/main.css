@@ -1,11 +1,18 @@
+#main {
+  display: flex;
+  flex-direction: row;
+}
+
+#visuals {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 svg {
-  /* position:absolute; */
-  /* z-index:10; */
-  /* top:0; */
-  /* left:0; */
   border: solid 1px #ccc;
-  height:98vh;
-  width: 50vw;
+  /* flex-grow: ; */
+  height: 90vh;
 }
 
 circle {
@@ -18,19 +25,15 @@ circle {
 }
 
 .controls {
-  float:right;
-  width: 400px;
-  height: 50px;
   background-color: orange;
+  /* flex-grow: 1; */
 }
 
-#dropbox {
-  /* display:none; */
-  /* display:none; */
-  /* position:absolute; */
-  /* z-index:1; */
-  /* top:0; */
-  /* left:0; */
-  width:500px;
-  height:500px;
+#files {
+  flex-grow: 1;
+  display: flex;
+}
+.dropbox {
+  border: 2px solid #000;
+  flex-grow: 1;
 }
