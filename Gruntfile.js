@@ -10,7 +10,7 @@ module.exports = function(grunt) {
           ]
         },
         files: {
-          "./dist/main.js": ["./modules/main.js"]
+          "./dist/main.js": ["./modules/d3.js", "./modules/main.js"]
         }
       }
     },

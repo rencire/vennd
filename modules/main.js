@@ -1,6 +1,10 @@
-import { addEvent } from './helpers.js';
+import { addEvent, getRandomInt } from './helpers.js';
 
-// main div
+function stopBubbleUp() {
+    d3.event.stopPropagation();
+}
+
+// Initialize Elements 
 var main_div = d3.select("body").append("div")
     .attr('id', 'main');
 
@@ -50,29 +54,28 @@ addEvent(window, 'resize', function() {
     width = parseInt(svg.style('width'));
 });
 
-// initialize empty data on page load
-var coordinates = [];
-var files = [];
 
-function stopBubbleUp() {
-    d3.event.stopPropagation();
+// State
+var circles = [];
+
+
+// State functions
+
+function inBounds(point) {
+    return point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height;
 }
 
-function inBounds(coord) {
-    return coord.x >= 0 && coord.x <= width && coord.y >= 0 && coord.y <= height;
-}
 
-
-function isFreeArea(coord) {
-    return coordinates.every(function(c) {
-        return (Math.pow((coord.x - c.x),2) + Math.pow((coord.y - c.y),2)) > Math.pow(radius,2);
+function isFreeArea(point) {
+    return circles.every(function(circle) {
+        return (Math.pow((point.x - circle.point.x),2) + Math.pow((point.y - circle.point.y),2)) > Math.pow(radius,2);
     });
 }
 
 
 // TODO break this up into separate operations if needed (update, enter, exit)
 function renderBoard() {
-    var circle = svg.selectAll('circle').data(coordinates, function(d){return d.id;});
+    var circle = svg.selectAll('circle').data(circles, function(d){return d.id;});
 
     // update
     // NOTE: x, y coords are updated automatically in #dragmove
@@ -81,8 +84,8 @@ function renderBoard() {
     // enter
     circle.enter().append('circle')
         .attr("r", radius)
-        .attr("cx", function(d){return d.x;})
-        .attr("cy", function(d){return d.y;})
+        .attr("cx", function(d){return d.point.x;})
+        .attr("cy", function(d){return d.point.y;})
         .classed('selected', function(d){return d.selected;})
         .on('click', toggleSelected)
         .on('mousedown', stopBubbleUp)
@@ -101,40 +104,56 @@ function toggleSelected(d) {
 
 function dragmove(d) {
     d3.select(this)
-        .attr("cx", d.x = Math.max(0, Math.min(width, d3.event.x)))
-        .attr("cy", d.y = Math.max(0, Math.min(height, d3.event.y)));
+        .attr("cx", d.point.x = Math.max(0, Math.min(width, d3.event.x)))
+        .attr("cy", d.point.y = Math.max(0, Math.min(height, d3.event.y)));
 }
 
 var dragBehavior = d3.behavior.drag()
     .origin(function(d) { 
-        return d; 
+        return d.point; 
     })
     // .on("dragstart", markSelected)
     .on("drag", dragmove);
 
 renderBoard();
 
+
+
+
+
+function generateRandomValidPoint() {
+    var point = {x: getRandomInt(0, width), y: getRandomInt(0, height)};
+    while(!isFreeArea(point)) {
+        point = {x: getRandomInt(0, width), y: getRandomInt(0, height)};
+    }
+    return point;
+};
+
 function addCircle(file) {
     var coord;
+    var circle;
     if (file) {
-        coord = {id: id_cnt, x: 100, y: 100,  selected: false, file: file};
+        // generate random coords
+        var point = generateRandomValidPoint();
+        circle = {id: id_cnt, point: point, selected: false, file: file};
     } else {
         // check if not clicking an area with circle
         var point = d3.mouse(this);
-        coord = {id: id_cnt, x: point[0], y: point[1], selected: false, file: file};
+        circle = {id: id_cnt, point: {x: point[0], y: point[1]}, selected: false, file: file};
 
-        if (!inBounds(coord)) {
-            console.log('ERROR: Coordinates out of bounds.') ;
+        if (!inBounds(circle.point)) {
+            console.log('ERROR: circles out of bounds.') ;
             return;
         }
-        if (!isFreeArea(coord)) {
+        if (!isFreeArea(circle.point)) {
             // This block will never execute from UI because 'click' event handlers for 'circles' will stopDefaultPropagation for parent 'click' event handlers.
             // Still useful if people are messing with the console to add circles.
             console.log("ERROR: Circle already exists in that spot.");
             return;
         }
     }
-    coordinates.push(coord);
+
+    circles.push(circle);
     //TODO Q: How to drag a shape after creating it?
     // A: don't implement this feature for now...
     id_cnt += 1;
@@ -142,14 +161,14 @@ function addCircle(file) {
 }
 
 function removeSelected() {
-    coordinates = coordinates.filter(function(d){
+    circles = circles.filter(function(d){
         return !d.selected;
     }); 
     renderBoard();
 }
 
 function clearBoard() {
-    coordinates = [];
+    circles = [];
     renderBoard();
 }
 
@@ -185,12 +204,12 @@ for (var i = 0, len = dropboxes.length; i < len; i++) {
 }
 
 function dragenter(e) {
-    e.stopPropogation();
+    e.stopPropagation();
     e.preventDefault();
 }
 
 function dragover(e) {
-    e.stopPropogation();
+    e.stopPropagation();
     e.preventDefault();
 }
 
@@ -229,10 +248,6 @@ function handleFiles(files) {
     }
 }
 
-
-function handleClickTest() {
-    console.log('clicked on input');
-}
 
 // http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
 
