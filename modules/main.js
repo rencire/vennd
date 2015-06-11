@@ -1,3 +1,5 @@
+import { addEvent } from './helpers.js';
+
 // main div
 var main_div = d3.select("body").append("div")
     .attr('id', 'main');

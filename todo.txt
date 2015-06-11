@@ -1,6 +1,6 @@
 x Make circles clickable and draggable
 x Allow user to remove circle.
-- upload a file, show a circle representing the file
+x upload a file, show a circle representing the file
 - select a circle, display corresponding file contents on rhs
 - click intersection of two circles, display results on rhs
 - drag n drop text file to Board to create circle 
