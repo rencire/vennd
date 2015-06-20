@@ -4,78 +4,95 @@ function stopBubbleUp() {
     d3.event.stopPropagation();
 }
 
-// Initialize Elements 
-var main_div = d3.select("body").append("div")
-    .attr('id', 'main');
+var views = {};
+var settings = {
+    radius: 80,
+    width: undefined,
+    height: undefined,
+    id_cnt: 0,
+    file_id_cnt:  0,
+};
 
 
-// visuals
-var visuals = main_div.append('div')
-    .attr('id', 'visuals');
+    // Adjust svg to window size
 
-var controls = visuals.append("div")
-    .classed('controls', true);
-
-controls.append("button")
-    .text('clear')
-    .on('click', clearBoard);
-
-controls.append("button")
-    .text('remove selected')
-    .on('click', removeSelected);
-
-var svg = visuals.append("svg")
-    // .on("dragenter", dragenter)
-    // .on("dragover", dragover)
-    .on("mousedown", addCircle);
-
-    // .on('click', handleClickTest);
+function initializePage() {
+    // Initialize Elements 
+    var main_div = d3.select("body").append("div")
+        .attr('id', 'main');
 
 
-var width = parseInt(svg.style('width')),
-    height = parseInt(svg.style('height')),
-    radius = 80;
+    // visuals
+    var visuals = main_div.append('div')
+        .attr('id', 'visuals');
 
-// files
-var files = main_div.append('div')
-    .attr('id', 'files');
+    var controls = visuals.append("div")
+        .classed('controls', true);
 
-var input = files.append('input')
-    .attr('class', 'dropbox')
-    .attr('type', 'file');
-    // .on("drop", drop);
+    controls.append("button")
+        .text('clear')
+        .on('click', clearBoard);
+
+    controls.append("button")
+        .text('remove selected')
+        .on('click', removeSelected);
+
+    var svg = visuals.append("svg")
+        .on("mousedown", addCircle);
+
+    settings.width = parseInt(svg.style('width'));
+    settings.height = parseInt(svg.style('height'));
+
+    // files
+    var files_div = main_div.append('div')
+        .attr('id', 'files');
+
+    var files_input = files_div.append('input')
+        .attr('class', 'dropbox')
+        .attr('type', 'file');
 
 
-var id_cnt = 0;
-var file_id_cnt = 0;
+    addEvent(window, 'resize', function() {
+        settings.height = parseInt(svg.style('height'));
+        settings.width = parseInt(svg.style('width'));
+    });
 
-addEvent(window, 'resize', function() {
-    height = parseInt(svg.style('height'));
-    width = parseInt(svg.style('width'));
-});
+    views.main_div = main_div;
+    views.visuals = visuals;
+    views.controls = controls;
+    views.svg = svg;
+    views.files_div = files_div;
+    views.files_input = files_input;
+}
 
 
 // State
+
 var circles = [];
 
 
 // State functions
 
 function inBounds(point) {
-    return point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height;
+    return point.x >= 0 && point.x <= settings.width && point.y >= 0 && point.y <= settings.height;
 }
 
 
 function isFreeArea(point) {
     return circles.every(function(circle) {
-        return (Math.pow((point.x - circle.point.x),2) + Math.pow((point.y - circle.point.y),2)) > Math.pow(radius,2);
+        return (Math.pow((point.x - circle.point.x),2) + Math.pow((point.y - circle.point.y),2)) > Math.pow(settings.radius,2);
     });
 }
 
+function renderFiles(){
+    views.files_div.append('div')
+        .attr('class', 'dropbox')
+        .attr('type', 'file');
+}
 
 // TODO break this up into separate operations if needed (update, enter, exit)
 function renderBoard() {
-    var circle = svg.selectAll('circle').data(circles, function(d){return d.id;});
+    var circle = views.svg.selectAll('circle').data(circles, function(d){return d.id;});
 
     // update
     // NOTE: x, y coords are updated automatically in #dragmove
@@ -83,7 +100,7 @@ function renderBoard() {
 
     // enter
     circle.enter().append('circle')
-        .attr("r", radius)
+        .attr("r", settings.radius)
         .attr("cx", function(d){return d.point.x;})
         .attr("cy", function(d){return d.point.y;})
         .classed('selected', function(d){return d.selected;})
@@ -104,8 +121,8 @@ function toggleSelected(d) {
 
 function dragmove(d) {
     d3.select(this)
-        .attr("cx", d.point.x = Math.max(0, Math.min(width, d3.event.x)))
-        .attr("cy", d.point.y = Math.max(0, Math.min(height, d3.event.y)));
+        .attr("cx", d.point.x = Math.max(0, Math.min(settings.width, d3.event.x)))
+        .attr("cy", d.point.y = Math.max(0, Math.min(settings.height, d3.event.y)));
 }
 
 var dragBehavior = d3.behavior.drag()
@@ -115,19 +132,18 @@ var dragBehavior = d3.behavior.drag()
     // .on("dragstart", markSelected)
     .on("drag", dragmove);
 
-renderBoard();
 
 
 
 
 
 function generateRandomValidPoint() {
-    var point = {x: getRandomInt(0, width), y: getRandomInt(0, height)};
+    var point = {x: getRandomInt(0, settings.width), y: getRandomInt(0, settings.height)};
     while(!isFreeArea(point)) {
-        point = {x: getRandomInt(0, width), y: getRandomInt(0, height)};
+        point = {x: getRandomInt(0, settings.width), y: getRandomInt(0, settings.height)};
     }
     return point;
-};
+}
 
 function addCircle(file) {
     var coord;
@@ -135,11 +151,11 @@ function addCircle(file) {
     if (file) {
         // generate random coords
         var point = generateRandomValidPoint();
-        circle = {id: id_cnt, point: point, selected: false, file: file};
+        circle = {id: settings.id_cnt, point: point, selected: false, file: file};
     } else {
         // check if not clicking an area with circle
         var point = d3.mouse(this);
-        circle = {id: id_cnt, point: {x: point[0], y: point[1]}, selected: false, file: file};
+        circle = {id: settings.id_cnt, point: {x: point[0], y: point[1]}, selected: false, file: file};
 
         if (!inBounds(circle.point)) {
             console.log('ERROR: circles out of bounds.') ;
@@ -156,7 +172,7 @@ function addCircle(file) {
     circles.push(circle);
     //TODO Q: How to drag a shape after creating it?
     // A: don't implement this feature for now...
-    id_cnt += 1;
+    settings.id_cnt += 1;
     renderBoard();
 }
 
@@ -173,35 +189,30 @@ function clearBoard() {
 }
 
 
+// Files
+function handleFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var imageType = /^image\//;
 
-// File Input
-// var inputElement = document.getElementById("input");
-// // var inputElement = d3.select("input");
-// inputElement.addEventListener("change", handleFiles, false);
-// function handleFiles() {
-//     var fileList = this.files;
-//     console.log(fileList);
-// }
+        if (!imageType.test(file.type)) {
+            continue;
+        }
 
-// Vanilla JS for binding drop events
-var dropboxes;
-dropboxes = document.getElementsByClassName("dropbox");
+        addCircle(file);
 
-// See: "Why is NodeList not an Array?"
-// https://developer.mozilla.org/en-US/docs/Web/API/NodeList
-// dropboxes.forEach(function(e) {
-//     e.addEventListener("dragenter", dragenter, false);
-//     e.addEventListener("dragover", dragover, false);
-//     e.addEventListener("drop", drop, false);
-//
-// });
+        // var img = document.createElement("img");
+        // img.classList.add("obj");
+        // img.file = file;
+        // main_div[0][0].appendChild(img); // Assuming that "preview" is the div output where the content will be displayed.
 
-for (var i = 0, len = dropboxes.length; i < len; i++) {
-    var input_ele = dropboxes[i];
-    input_ele.addEventListener("dragenter", dragenter, false);
-    input_ele.addEventListener("dragover", dragover, false);
-    input_ele.addEventListener("drop", drop, false);
+        // var reader = new FileReader();
+        // Q: Why use an immediately invoking function expresssion?
+        // reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+        // reader.readAsDataURL(file);
+    }
 }
+
 
 function dragenter(e) {
     e.stopPropagation();
@@ -224,30 +235,41 @@ function drop(e) {
 }
 
 //hanldeFiles example from https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
-function handleFiles(files) {
-    for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        var imageType = /^image\//;
 
-        if (!imageType.test(file.type)) {
-            continue;
-        }
+function setupFileDrop() {
+    // File Input
+    // var inputElement = document.getElementById("input");
+    // // var inputElement = d3.select("input");
+    // inputElement.addEventListener("change", handleFiles, false);
+    // function handleFiles() {
+    //     var fileList = this.files;
+    //     console.log(fileList);
+    // }
 
-        // add as a coordinate
-        addCircle(file);
+    // Vanilla JS for binding drop events
+    var dropboxes;
+    dropboxes = document.getElementsByClassName("dropbox");
 
-        // var img = document.createElement("img");
-        // img.classList.add("obj");
-        // img.file = file;
-        // main_div[0][0].appendChild(img); // Assuming that "preview" is the div output where the content will be displayed.
+    // See: "Why is NodeList not an Array?"
+    // https://developer.mozilla.org/en-US/docs/Web/API/NodeList
+    // dropboxes.forEach(function(e) {
+    //     e.addEventListener("dragenter", dragenter, false);
+    //     e.addEventListener("dragover", dragover, false);
+    //     e.addEventListener("drop", drop, false);
+    //
+    // });
 
-        // var reader = new FileReader();
-        // Q: Why use an immediately invoking function expresssion?
-        // reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-        // reader.readAsDataURL(file);
+    for (var i = 0, len = dropboxes.length; i < len; i++) {
+        var input_ele = dropboxes[i];
+        input_ele.addEventListener("dragenter", dragenter, false);
+        input_ele.addEventListener("dragover", dragover, false);
+        input_ele.addEventListener("drop", drop, false);
     }
 }
 
-
 // http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
 
+
+initializePage();
+renderBoard();
+setupFileDrop();
