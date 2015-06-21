@@ -3,15 +3,14 @@
   flex-direction: row;
 }
 
-#visuals {
-  flex-grow: 1;
+.visuals {
+  width:50%;
   display: flex;
   flex-direction: column;
 }
 
 svg {
   border: solid 1px #ccc;
-  /* flex-grow: ; */
   height: 90vh;
 }
 
@@ -29,11 +28,14 @@ circle {
   /* flex-grow: 1; */
 }
 
-#files {
-  flex-grow: 1;
+.files {
+  width:50%;
   display: flex;
   flex-direction: column;
 }
+  .file-content {
+    flex-grow:3;
+  }
 .dropbox {
   border: 2px solid #000;
   width: 200px;

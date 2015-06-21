@@ -13,8 +13,8 @@ var settings = {
     file_id_cnt:  0,
 };
 
-
-    // Adjust svg to window size
+    
+// Adjust svg to window size
 
 function initializePage() {
     // Initialize Elements 
@@ -24,10 +24,10 @@ function initializePage() {
 
     // visuals
     var visuals = main_div.append('div')
-        .attr('id', 'visuals');
+        .attr('class', 'visuals');
 
     var controls = visuals.append("div")
-        .classed('controls', true);
+        .attr('class', 'controls');
 
     controls.append("button")
         .text('clear')
@@ -37,20 +37,21 @@ function initializePage() {
         .text('remove selected')
         .on('click', removeSelected);
 
-    var svg = visuals.append("svg")
-        .on("mousedown", addCircle);
+    var svg = visuals.append("svg");
 
     settings.width = parseInt(svg.style('width'));
     settings.height = parseInt(svg.style('height'));
 
     // files
     var files_div = main_div.append('div')
-        .attr('id', 'files');
+        .attr('class', 'files');
 
     var files_input = files_div.append('input')
         .attr('class', 'dropbox')
         .attr('type', 'file');
 
+    var file_content = files_div.append('textarea')
+        .attr('class', 'file-content');
 
     addEvent(window, 'resize', function() {
         settings.height = parseInt(svg.style('height'));
@@ -63,6 +64,7 @@ function initializePage() {
     views.svg = svg;
     views.files_div = files_div;
     views.files_input = files_input;
+    views.file_content = file_content;
 }
 
 
@@ -117,8 +119,14 @@ function toggleSelected(d) {
     d3.event.stopPropagation();
     d3.select(this)
         .classed('selected', d.selected = !d.selected);
+    if (d.selected && d.file) {
+        displayFileContents(d.file);    
+    } else {
+        views.file_content.text('');
+    }
 }
 
+// TODO get rid of d3 and code a drag solution with vanilla javascript
 function dragmove(d) {
     d3.select(this)
         .attr("cx", d.point.x = Math.max(0, Math.min(settings.width, d3.event.x)))
@@ -193,7 +201,7 @@ function clearBoard() {
 function handleFiles(files) {
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
-        var imageType = /^image\//;
+        var imageType = /^text\//;
 
         if (!imageType.test(file.type)) {
             continue;
@@ -208,11 +216,20 @@ function handleFiles(files) {
 
         // var reader = new FileReader();
         // Q: Why use an immediately invoking function expresssion?
+        // A: because 'img' might come from last iteration in loop. 
         // reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
         // reader.readAsDataURL(file);
     }
 }
 
+function displayFileContents(file) {
+    if (file == null) {
+        
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) { views.file_content.text(e.target.result); }; 
+    reader.readAsText(file);
+}    
 
 function dragenter(e) {
     e.stopPropagation();
@@ -228,7 +245,6 @@ function drop(e) {
     e.stopPropagation();
     e.preventDefault();
 
-    console.log('registered drop');
     var dt = e.dataTransfer;
     var files = dt.files;
     handleFiles(files);
@@ -268,7 +284,6 @@ function setupFileDrop() {
 }
 
 // http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
-
 
 initializePage();
 renderBoard();
