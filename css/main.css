@@ -4,14 +4,30 @@
 }
 
 .visuals {
+  position: relative;
   width:50%;
+  height: 90vh;
   display: flex;
   flex-direction: column;
 }
 
+.drawboard {
+  position:relative;
+  flex-grow:20;
+  width: 100%
+}
+.drop-layer {
+  position: absolute;
+  top:0;
+  background-color: #808080;
+  width: inherit;
+  height: 100%;
+}
+
 svg {
   border: solid 1px #ccc;
-  height: 90vh;
+  height: 100%;
+  width: 100%;
 }
 
 circle {
@@ -25,7 +41,7 @@ circle {
 
 .controls {
   background-color: orange;
-  /* flex-grow: 1; */
+  flex-grow: 1;
 }
 
 .files {
