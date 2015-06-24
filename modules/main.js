@@ -51,9 +51,9 @@ function initializePage() {
     var files_div = main_div.append('div')
         .attr('class', 'files');
 
-    var files_input = files_div.append('input')
-        .attr('class', 'dropbox')
-        .attr('type', 'file');
+    // var files_input = files_div.append('input')
+    //     .attr('class', 'dropbox')
+    //     .attr('type', 'file');
 
     var file_content = files_div.append('textarea')
         .attr('class', 'file-content');
@@ -69,7 +69,7 @@ function initializePage() {
     views.drawboard = drawboard;
     views.svg = svg;
     views.files_div = files_div;
-    views.files_input = files_input;
+    // views.files_input = files_input;
     views.file_content = file_content;
 }
 
