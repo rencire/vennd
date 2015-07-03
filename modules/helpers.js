@@ -31,4 +31,12 @@ function debounce(callback, wait, immediate) {
   };
 };
 
+function once(callback) {
+  var fired;
+  return function() {
+    // var self = this, args = arguments;
+    callback.apply(self, arguments);
+  };
+}
+
 export { addEvent, getRandomInt, debounce};

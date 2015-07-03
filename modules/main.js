@@ -18,13 +18,16 @@ var settings = {
 
 function initializePage() {
     // Initialize Elements 
-    var main_div = d3.select("body").append("div")
-        .attr('id', 'main');
+    // var main_div = d3.select("body").append("div")
+    //     .attr('id', 'main');
 
+    var main_div = d3.select("#main");
 
     // visuals
     var visuals = main_div.append('div')
         .attr('class', 'visuals');
+
+    // var visuals = d3.select('.visuals');
 
     var controls = visuals.append("div")
         .attr('class', 'controls');
@@ -51,12 +54,14 @@ function initializePage() {
     var files_div = main_div.append('div')
         .attr('class', 'files');
 
+    // var files_div = d3.select('.files');
     // var files_input = files_div.append('input')
     //     .attr('class', 'dropbox')
     //     .attr('type', 'file');
 
     var file_content = files_div.append('textarea')
         .attr('class', 'file-content');
+    // var file_content = d3.select('.file-content');
 
     addEvent(window, 'resize', function() {
         settings.height = parseInt(svg.style('height'));
@@ -296,18 +301,18 @@ renderBoard();
 setupFileDrop();
 
 function uploadDragEnter(e) {
-    e.stopPropagation();
+    // e.stopPropagation();
     e.preventDefault();
     var dt = e.dataTransfer;
-    console.log(e);
 
 }
 
 
 function uploadDragLeave(e) {
-    e.stopPropagation();
+    // e.stopPropagation();
     e.preventDefault();
-    console.log(e);
+    var dt = e.dataTransfer;
+    dt.dropEffect = 'move';
 }
 
 function uploadDragOver(e) {
@@ -315,15 +320,12 @@ function uploadDragOver(e) {
     e.preventDefault();
     var dt = e.dataTransfer;
     dt.dropEffect = 'copy';
-    console.log(e);
 }
 
 function uploadDrop(e) {
     e.stopPropagation();
     e.preventDefault();
-    console.log(e);
 }
-
 
 
 var drawboard = document.getElementsByClassName('drawboard')[0];
@@ -332,32 +334,93 @@ drawboard.addEventListener("dragover", uploadDragOver, false);
 drawboard.addEventListener("dragleave", uploadDragLeave, false);
 drawboard.addEventListener("drop", uploadDrop, false);
 
-// do not allow dropping files anywhere in body
-function handleDocumentDragEnter(e) {
+
+// TODO: check if event contains files
+function containsFiles(e) {
+    return true;
+}
+// NOTE: do not allow dropping files anywhere in body
+// TODO Since dragenter events are triggered on almost every div,
+// we should restrict adding div.drop-layer to an event from one event.target
+
+// NOTES:
+// - Currently, HTML5 dragenter and dragleave are similar to mousein and mouseout.
+// - Using a custom event to make dragenter and dragleave behave more like mouseenter and mouseleave.
+// - Custom solution also handles Firefox 38's weird behavior of double firing dragenter event...
+// - TODO Firefox 38 also fires our custom event when we reload the page.. Fix this!
+//
+// References:
+// - http://stackoverflow.com/questions/10253663/how-to-detect-the-dragleave-event-in-firefox-when-dragging-outside-the-window/10310815#10310815
+
+// Lets create a custom event to handle this.
+// NOTE on firefox,
+
+function handleDragzoneEnter(e) {
     e.stopPropagation();
     e.preventDefault();
-    console.log('document enter');
-    console.log(e);
-    console.log(e.currentTarget);
-    console.log(e.target);
-    var dt = e.dataTransfer;
-    dt.effectAllowed = dt.dropEffect = 'none';
+    console.log('dragzone:enter');
+    // need to change effect of drag upon entering dropzone
+    // dt.effectAllowed = dt.dropEffect = 'none';
     // insert drop-layer to drawboard
     var text = document.createTextNode('drop your files here!');
     var dropLayer = document.createElement('div');
     dropLayer.setAttribute('class', 'drop-layer');
     dropLayer.appendChild(text);
-
-    drawboard.appendChild(dropLayer);
+    document.body.appendChild(dropLayer);
+    // }
 }
 
-document.body.addEventListener("dragenter", debounce(handleDocumentDragEnter,300, true), false);
+function handleDragzoneLeave(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('dragzone:leave');
+    var dropLayer = document.querySelector('.drop-layer');
+    document.body.removeChild(dropLayer);
+}
 
-// On latest version of firefox, this event keeps propogating unless we call e.stopPropagation...
-// ...Why does this happen?
-// A: looks like it is fired once from div.files, and once for body... why?
+var main_elem = document.querySelector('#main');
 
-document.body.addEventListener("dragover", function(e) {
+main_elem.addEventListener("dragzone:enter", handleDragzoneEnter, false);
+
+main_elem.addEventListener("dragzone:leave", handleDragzoneLeave, false);
+
+
+
+// NOTE: Code below was used to troubleshoot an irreproducible issue. can safely delete.
+// document.querySelector('.files').addEventListener('dragenter', function(e) {
+//     console.log(e);
+//     console.log('is this serioiusly being fired?');
+// },false);
+
+
+
+var firedEvents = [];
+var dragzone_enter = new Event('dragzone:enter', {"bubble": true, "cancelable":true});
+var dragzone_leave = new Event('dragzone:leave', {"bubble": true, "cancelable":true});
+
+main_elem.addEventListener("dragenter", function(e){
+    if (firedEvents.length === 0) {
+        dragzone_enter.dataTransfer = e.dataTransfer;
+        this.dispatchEvent(dragzone_enter);
+    }
+    firedEvents.push(e.target);
+    console.log('dragenter', e.target, firedEvents);
+}, false);
+
+main_elem.addEventListener("dragleave", function(e){
+    firedEvents = firedEvents.filter(function(elem) {
+        return elem !== e.target;
+    });
+    console.log('dragleave',e.target, firedEvents);
+    if (firedEvents.length === 0) {
+        dragzone_leave.dataTransfer = e.dataTransfer;
+        this.dispatchEvent(dragzone_leave);
+    }
+}, false);
+
+
+
+main_elem.addEventListener("dragover", function(e) {
     e.stopPropagation();
     e.preventDefault();
     // console.log('document dragover');
@@ -366,12 +429,9 @@ document.body.addEventListener("dragover", function(e) {
     dt.effectAllowed = dt.dropEffect = 'none';
 }, false);
 
-document.body.addEventListener("dragleave", function(e) {
+main_elem.addEventListener("drop", function(e) {
     e.stopPropagation();
     e.preventDefault();
-    console.log('document dragleave');
-    console.log(e.target);
-    var dropLayer = document.getElementsByClassName('drop-layer')[0];
-    drawboard.removeChild(dropLayer);
+    console.log('body drop');
 }, false);
 
