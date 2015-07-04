@@ -14,67 +14,28 @@ var settings = {
     file_id_cnt:  0,
 };
 
-    
-// Adjust svg to window size
-
+// forget this intialize page
 function initializePage() {
-    // Initialize Elements 
-    // var main_div = d3.select("body").append("div")
-    //     .attr('id', 'main');
+    // bind buttons
+    document.querySelector('.clear-btn').addEventListener('click', clearBoard, false);
+    document.querySelector('.rm-sel-btn').addEventListener('click', removeSelected, false);
 
-    var main_div = d3.select("#main");
-
-    // visuals
-    var visuals = main_div.append('section')
-        .attr('class', 'visuals');
-
-    // var visuals = d3.select('.visuals');
-
-    var controls = visuals.append("menu")
-        .attr('class', 'controls');
-
-    controls.append("button")
-        .text('clear')
-        .on('click', clearBoard);
-
-    controls.append("button")
-        .text('remove selected')
-        .on('click', removeSelected);
-
-    var drawboard = visuals.append('svg')
-        .attr('class', 'drawboard');
+    // track width/height of svg for circle bounds
+    var drawboard = d3.select('.drawboard');
 
     settings.width = parseInt(drawboard.style('width'));
     settings.height = parseInt(drawboard.style('height'));
 
-    // files
-    var files_div = main_div.append('section')
-        .attr('class', 'files');
+    views.main_div = document.querySelector('#main');
+    views.dragzone = document.querySelector('.dragzone');
+    views.visuals = document.querySelector('.visuals');
+    views.controls = document.querySelector('.controls');
+    views.show_msg = document.querySelector('.show-msg');
 
-    // var files_div = d3.select('.files');
-    // var files_input = files_div.append('input')
-    //     .attr('class', 'dropbox')
-    //     .attr('type', 'file');
-
-    var file_content = files_div.append('div')
-        .attr('class', 'file-content')
-        .attr('contenteditable', 'true');
-    // var file_content = d3.select('.file-content');
-
-    addEvent(window, 'resize', function() {
-        settings.height = parseInt(drawboard.style('height'));
-        settings.width = parseInt(drawboard.style('width'));
-    });
-
-    views.main_div = main_div;
-    views.visuals = visuals;
-    views.controls = controls;
     views.drawboard = drawboard;
-    views.files_div = files_div;
-    // views.files_input = files_input;
-    views.file_content = file_content;
+    views.files_div = document.querySelector('.files');
+    views.file_content = document.querySelector('.file-content');
 }
-
 
 // State
 
@@ -297,26 +258,25 @@ initializePage();
 renderBoard();
 setupFileDrop();
 
+// Since svg.drawboard is a child element of a Dragzone, we need to make sure dragenter and dragleave events propogate up
 function uploadDragEnter(e) {
-    // e.stopPropagation();
     e.preventDefault();
     var dt = e.dataTransfer;
-
+    dt.dropEffect = 'copy';
 }
 
 
 function uploadDragLeave(e) {
-    // e.stopPropagation();
     e.preventDefault();
     var dt = e.dataTransfer;
     dt.dropEffect = 'move';
 }
 
 function uploadDragOver(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    var dt = e.dataTransfer;
-    dt.dropEffect = 'copy';
+    // e.stopPropagation();
+    // e.preventDefault();
+    // var dt = e.dataTransfer;
+    // dt.dropEffect = 'copy';
 }
 
 function uploadDrop(e) {
@@ -359,28 +319,22 @@ function handleDragzoneEnter(e) {
     // need to change effect of drag upon entering dropzone
     // dt.effectAllowed = dt.dropEffect = 'none';
     // insert drop-layer to drawboard
-    var text = document.createTextNode('drop your files here!');
-    var dropLayer = document.createElement('div');
-    dropLayer.setAttribute('class', 'droplayer');
-    dropLayer.appendChild(text);
-    document.body.appendChild(dropLayer);
-    // }
+    views.show_msg.style.display = 'block';
 }
 
 function handleDragzoneLeave(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:leave');
-    var dropLayer = document.querySelector('.droplayer');
-    document.body.removeChild(dropLayer);
+    views.show_msg.style.display = '';
 }
 
-var main_elem = document.querySelector('#main');
-makeDragzone(main_elem);
+var dragzone_ele = document.querySelector('.dragzone');
+makeDragzone(dragzone_ele,true);
 
-main_elem.addEventListener("dragzone:enter", handleDragzoneEnter, false);
+dragzone_ele.addEventListener("dragzone:enter", handleDragzoneEnter, false);
 
-main_elem.addEventListener("dragzone:leave", handleDragzoneLeave, false);
+dragzone_ele.addEventListener("dragzone:leave", handleDragzoneLeave, false);
 
 
 
@@ -390,13 +344,13 @@ main_elem.addEventListener("dragzone:leave", handleDragzoneLeave, false);
 //     console.log('is this serioiusly being fired?');
 // },false);
 
-main_elem.addEventListener("drop", function(e) {
+dragzone_ele.addEventListener("drop", function(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('body drop');
 }, false);
 
-main_elem.addEventListener("dragover", function(e) {
+dragzone_ele.addEventListener("dragover", function(e) {
   e.stopPropagation();
   e.preventDefault();
   // console.log('document dragover');
