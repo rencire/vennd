@@ -1,4 +1,5 @@
 import { addEvent, getRandomInt, debounce } from './helpers.js';
+import { makeDragzone } from './dragzone.js';
 
 function stopBubbleUp() {
     d3.event.stopPropagation();
@@ -24,12 +25,12 @@ function initializePage() {
     var main_div = d3.select("#main");
 
     // visuals
-    var visuals = main_div.append('div')
+    var visuals = main_div.append('section')
         .attr('class', 'visuals');
 
     // var visuals = d3.select('.visuals');
 
-    var controls = visuals.append("div")
+    var controls = visuals.append("menu")
         .attr('class', 'controls');
 
     controls.append("button")
@@ -40,18 +41,14 @@ function initializePage() {
         .text('remove selected')
         .on('click', removeSelected);
 
-    var drawboard = visuals.append('div')
+    var drawboard = visuals.append('svg')
         .attr('class', 'drawboard');
 
-
-
-    var svg = drawboard.append('svg');
-
-    settings.width = parseInt(svg.style('width'));
-    settings.height = parseInt(svg.style('height'));
+    settings.width = parseInt(drawboard.style('width'));
+    settings.height = parseInt(drawboard.style('height'));
 
     // files
-    var files_div = main_div.append('div')
+    var files_div = main_div.append('section')
         .attr('class', 'files');
 
     // var files_div = d3.select('.files');
@@ -59,20 +56,20 @@ function initializePage() {
     //     .attr('class', 'dropbox')
     //     .attr('type', 'file');
 
-    var file_content = files_div.append('textarea')
-        .attr('class', 'file-content');
+    var file_content = files_div.append('div')
+        .attr('class', 'file-content')
+        .attr('contenteditable', 'true');
     // var file_content = d3.select('.file-content');
 
     addEvent(window, 'resize', function() {
-        settings.height = parseInt(svg.style('height'));
-        settings.width = parseInt(svg.style('width'));
+        settings.height = parseInt(drawboard.style('height'));
+        settings.width = parseInt(drawboard.style('width'));
     });
 
     views.main_div = main_div;
     views.visuals = visuals;
     views.controls = controls;
     views.drawboard = drawboard;
-    views.svg = svg;
     views.files_div = files_div;
     // views.files_input = files_input;
     views.file_content = file_content;
@@ -105,7 +102,7 @@ function renderFiles(){
 
 // TODO break this up into separate operations if needed (update, enter, exit)
 function renderBoard() {
-    var circle = views.svg.selectAll('circle').data(circles, function(d){return d.id;});
+    var circle = views.drawboard.selectAll('circle').data(circles, function(d){return d.id;});
 
     // update
     // NOTE: x, y coords are updated automatically in #dragmove
@@ -364,7 +361,7 @@ function handleDragzoneEnter(e) {
     // insert drop-layer to drawboard
     var text = document.createTextNode('drop your files here!');
     var dropLayer = document.createElement('div');
-    dropLayer.setAttribute('class', 'drop-layer');
+    dropLayer.setAttribute('class', 'droplayer');
     dropLayer.appendChild(text);
     document.body.appendChild(dropLayer);
     // }
@@ -374,11 +371,12 @@ function handleDragzoneLeave(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:leave');
-    var dropLayer = document.querySelector('.drop-layer');
+    var dropLayer = document.querySelector('.droplayer');
     document.body.removeChild(dropLayer);
 }
 
 var main_elem = document.querySelector('#main');
+makeDragzone(main_elem);
 
 main_elem.addEventListener("dragzone:enter", handleDragzoneEnter, false);
 
@@ -392,46 +390,17 @@ main_elem.addEventListener("dragzone:leave", handleDragzoneLeave, false);
 //     console.log('is this serioiusly being fired?');
 // },false);
 
-
-
-var firedEvents = [];
-var dragzone_enter = new Event('dragzone:enter', {"bubble": true, "cancelable":true});
-var dragzone_leave = new Event('dragzone:leave', {"bubble": true, "cancelable":true});
-
-main_elem.addEventListener("dragenter", function(e){
-    if (firedEvents.length === 0) {
-        dragzone_enter.dataTransfer = e.dataTransfer;
-        this.dispatchEvent(dragzone_enter);
-    }
-    firedEvents.push(e.target);
-    console.log('dragenter', e.target, firedEvents);
-}, false);
-
-main_elem.addEventListener("dragleave", function(e){
-    firedEvents = firedEvents.filter(function(elem) {
-        return elem !== e.target;
-    });
-    console.log('dragleave',e.target, firedEvents);
-    if (firedEvents.length === 0) {
-        dragzone_leave.dataTransfer = e.dataTransfer;
-        this.dispatchEvent(dragzone_leave);
-    }
-}, false);
-
-
-
-main_elem.addEventListener("dragover", function(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    // console.log('document dragover');
-    // console.log(e.target);
-    var dt = e.dataTransfer;
-    dt.effectAllowed = dt.dropEffect = 'none';
-}, false);
-
 main_elem.addEventListener("drop", function(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('body drop');
 }, false);
 
+main_elem.addEventListener("dragover", function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  // console.log('document dragover');
+  // console.log(e.target);
+  var dt = e.dataTransfer;
+  dt.effectAllowed = dt.dropEffect = 'none';
+}, false);

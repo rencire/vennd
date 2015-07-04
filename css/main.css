@@ -1,25 +1,38 @@
+body {
+  margin: 0;
+}
+
 #main {
-  height:98vh;
   display: flex;
   flex-direction: row;
+  position: relative;
+  height: 100vh;
+}
+
+.droplayer {
+  position: absolute;
+  top:0;
+  z-index: 10;
+  font-size: 5em;
 }
 
 .visuals {
   position: relative;
   width: 50%;
-  height: inherit;
+  /* height: inherit; */
   display: flex;
   flex-direction: column;
 }
 
-.droplayer {
-  position: absolute;
-  background-color: #808080;
+.controls {
+  flex-grow:1;
+  margin:0;
 }
 
-svg {
+
+.drawboard {
   border: solid 1px #ccc;
-  height: inherit;
+  flex-grow: 10;
 }
 
 circle {
@@ -42,6 +55,8 @@ circle {
   flex-direction: column;
 }
   .file-content {
+    margin: 0 1rem;
+    border: 1px dotted black;
     flex-grow:3;
   }
 
