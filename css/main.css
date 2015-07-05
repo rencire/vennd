@@ -9,7 +9,7 @@ body {
   flex-direction: row;
   height: 100vh;
 }
-  .show-msg {
+  .ctr-msg {
     position: absolute;
     top:0;
     left:0;
@@ -30,6 +30,7 @@ body {
   
     display:none;
   }
+
 
   .visuals {
     position: relative;

@@ -16,10 +16,6 @@ var settings = {
 
 // forget this intialize page
 function initializePage() {
-    // bind buttons
-    document.querySelector('.clear-btn').addEventListener('click', clearBoard, false);
-    document.querySelector('.rm-sel-btn').addEventListener('click', removeSelected, false);
-
     // track width/height of svg for circle bounds
     var drawboard = d3.select('.drawboard');
 
@@ -30,11 +26,21 @@ function initializePage() {
     views.dragzone = document.querySelector('.dragzone');
     views.visuals = document.querySelector('.visuals');
     views.controls = document.querySelector('.controls');
-    views.show_msg = document.querySelector('.show-msg');
+    views.drag_msg = document.querySelector('.drag-msg');
+    views.ctr_msg = document.querySelector('.ctr-msg');
 
     views.drawboard = drawboard;
     views.files_div = document.querySelector('.files');
     views.file_content = document.querySelector('.file-content');
+    
+    // bind buttons
+    document.querySelector('.clear-btn').addEventListener('click', clearBoard, false);
+    document.querySelector('.rm-sel-btn').addEventListener('click', removeSelected, false);
+
+    // bind error msg click
+    views.dragzone.addEventListener('click', function(e) {
+      renderCtrMsg(false);
+    }, false);
 }
 
 // State
@@ -165,29 +171,29 @@ function clearBoard() {
     renderBoard();
 }
 
+// Misc.
+function renderCtrMsg(msg) {
+  if (msg === false) {
+    views.ctr_msg.textContent = views.ctr_msg.style.display = '';
+  } else if (typeof msg === 'string') {
+    views.ctr_msg.style.display = 'block';
+    views.ctr_msg.textContent = msg;
+  }
+}
 
 // Files
 function handleFiles(files) {
+    console.log('handling files..');
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
         var imageType = /^text\//;
 
         if (!imageType.test(file.type)) {
+            renderCtrMsg('File type needs to be Text');
             continue;
         }
 
         addCircle(file);
-
-        // var img = document.createElement("img");
-        // img.classList.add("obj");
-        // img.file = file;
-        // main_div[0][0].appendChild(img); // Assuming that "preview" is the div output where the content will be displayed.
-
-        // var reader = new FileReader();
-        // Q: Why use an immediately invoking function expresssion?
-        // A: because 'img' might come from last iteration in loop. 
-        // reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-        // reader.readAsDataURL(file);
     }
 }
 
@@ -223,7 +229,6 @@ function displayFileContents(file) {
 
 initializePage();
 renderBoard();
-setupFileDrop();
 
 // TODO: check if event contains files
 function containsFiles(e) {
@@ -242,7 +247,7 @@ function handleDragzoneEnter(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:enter');
-    views.show_msg.style.display = 'block';
+    renderCtrMsg('Drop your files to visualize!');
 }
 
 function handleDragover(e) {
@@ -256,15 +261,9 @@ function handleDragzoneLeave(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:leave');
-    views.show_msg.style.display = '';
+    renderCtrMsg(false);
 }
 
-function handleDragzoneDrop(e) {
-  e.stopPropagation();
-  e.preventDefault();
-  console.log('dragzone:drop');
-  views.show_msg.style.display = '';
-}
 
 var dragzone_ele = document.querySelector('.dragzone');
 makeDragzone(dragzone_ele);
@@ -282,11 +281,14 @@ dragzone_ele.addEventListener("drop", function(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('drop');
-    views.show_msg.style.display = '';
 
     // add circle to svg
     console.log(e.dataTransfer);
-    if
+    if(containsFiles(e)) {
+      handleFiles(e.dataTransfer.files);
+    } else {
+      renderCtrMsg('Can only drop files');
+    }
 
 }, false);
 
