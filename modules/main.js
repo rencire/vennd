@@ -39,8 +39,13 @@ function initializePage() {
 
     // bind error msg click
     views.dragzone.addEventListener('click', function(e) {
-      renderCtrMsg(false);
+      updateCtrMsg(false);
     }, false);
+
+    // make text uneditable
+    views.file_content.addEventListener('click', function(e) {
+      e.preventDefault();
+    },false);
 }
 
 // State
@@ -97,7 +102,7 @@ function toggleSelected(d) {
     if (d.selected && d.file) {
         displayFileContents(d.file);    
     } else {
-        views.file_content.text('');
+        views.file_content.value = '';
     }
 }
 
@@ -164,15 +169,17 @@ function removeSelected() {
         return !d.selected;
     }); 
     renderBoard();
+    views.file_content.value = '';
 }
 
 function clearBoard() {
     circles = [];
     renderBoard();
+    views.file_content.value = '';
 }
 
-// Misc.
-function renderCtrMsg(msg) {
+// Render/update fn's
+function updateCtrMsg(msg) {
   if (msg === false) {
     views.ctr_msg.textContent = views.ctr_msg.style.display = '';
   } else if (typeof msg === 'string') {
@@ -180,6 +187,7 @@ function renderCtrMsg(msg) {
     views.ctr_msg.textContent = msg;
   }
 }
+
 
 // Files
 function handleFiles(files) {
@@ -189,46 +197,26 @@ function handleFiles(files) {
         var imageType = /^text\//;
 
         if (!imageType.test(file.type)) {
-            renderCtrMsg('File type needs to be Text');
+            updateCtrMsg('File type needs to be Text');
             continue;
         }
-
         addCircle(file);
+        updateCtrMsg(false);
     }
 }
 
 function displayFileContents(file) {
     if (file == null) {
-        
+          
     }
     var reader = new FileReader();
-    reader.onload = function(e) { views.file_content.text(e.target.result); }; 
+    reader.onload = function(e) { 
+      views.file_content.value = e.target.result; 
+    }; 
     reader.readAsText(file);
 }    
 
-// function dragenter(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-// }
-//
-// function dragover(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-// }
-//
-// function drop(e) {
-//     e.stopPropagation();
-//     e.preventDefault();
-//
-//     var dt = e.dataTransfer;
-//     var files = dt.files;
-//     handleFiles(files);
-// }
 
-// http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
-
-initializePage();
-renderBoard();
 
 // TODO: check if event contains files
 function containsFiles(e) {
@@ -242,12 +230,12 @@ function containsFiles(e) {
 //
 // References:
 // - http://stackoverflow.com/questions/10253663/how-to-detect-the-dragleave-event-in-firefox-when-dragging-outside-the-window/10310815#10310815
-
+// - http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
 function handleDragzoneEnter(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:enter');
-    renderCtrMsg('Drop your files to visualize!');
+    updateCtrMsg('Drop your files to visualize!');
 }
 
 function handleDragover(e) {
@@ -261,7 +249,7 @@ function handleDragzoneLeave(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:leave');
-    renderCtrMsg(false);
+    updateCtrMsg(false);
 }
 
 
@@ -287,8 +275,11 @@ dragzone_ele.addEventListener("drop", function(e) {
     if(containsFiles(e)) {
       handleFiles(e.dataTransfer.files);
     } else {
-      renderCtrMsg('Can only drop files');
+      updateCtrMsg('Can only drop files');
     }
 
 }, false);
 
+
+initializePage();
+renderBoard();
