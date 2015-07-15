@@ -19,11 +19,20 @@ module.exports = function(grunt) {
         files: ["./modules/*.js"],
         tasks: ["browserify"]
       }
+    },
+    jasmine: {
+      test: {
+        src: 'client.js',
+        options: {
+          specs: 'test/*.spec.js'
+        }
+      }
     }
   });
 
   grunt.loadNpmTasks("grunt-browserify");
   grunt.loadNpmTasks("grunt-contrib-watch");
+  grunt.loadNpmTasks("grunt-contrib-jasmine");
 
   grunt.registerTask("default", ["watch"]);
   grunt.registerTask("build", ["browserify"]);
