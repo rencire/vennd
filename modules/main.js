@@ -322,6 +322,7 @@ function addCircle(file) {
         reader.readAsText(file);
 
     } else {
+        //TODO Review this false condition code
         // check if not clicking an area with circle
         var point = d3.mouse(this);
         circle = {id: settings.id_cnt, point: {x: point[0], y: point[1]}, selected: false, file: file};
