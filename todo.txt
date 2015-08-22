@@ -2,11 +2,12 @@
 *x Make circles clickable and draggable
 x Allow user to remove circle.
 x upload a file, show a circle representing the file
-- drag file to browser window, display droplayer overlay on svg
-- select a circle, display corresponding file contents on rhs
-- click intersection of two circles, display results on rhs
-- drag n drop text file to Board to create circle 
+x drag file to browser window, display droplayer overlay on svg
+x select a circle, display corresponding file contents
+x click intersection of two circles, display results 
+x drag n drop text file to Board to create circle 
 
+- highlight selected area of venn diagram
 
 #Future tasks
 - make droplayer prettier
