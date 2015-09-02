@@ -2,6 +2,9 @@
 
 import {getAllIntersections, getIntersections} from './circle';
 
+// NOTE: Test data generated from Wolfram Alpha.
+// e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
+//
 describe('get correct intersections for two circles with...', () => {
   it('same radius, translated', () => {
     var c1 = {id:1, x:20, y:20, radius: 7};
@@ -130,58 +133,69 @@ describe('get all correct intersections for...', () => {
   //TODO setup data to test 'exp_points', 'points', etc.
   xit('two overlap each other, one overlap only one', () => {
     var circles = [
-      {
-        id: 1,
-        center: {x: 100, y: 100},
-        radius: 50
-      }, 
-      {
-        id: 2,
-        center: {x: 150, y: 150},
-        radius: 50
-      }, 
-      {
-        id: 3,
-        center: {x: 333, y: 333},
-        radius: 33
-      }
     ];
 
-    var points = [];
-    var exp_points = [];
+    var expected = [];
 
-    expect(getAllIntersections(circles)).toEqual(exp_points); 
   });
 
   xit('multiple circles with no overlap', () => {
   });
 
-  xit('empty circle list', () => {
-    let circles = [];
-    expect(getAllIntersections(circles)).toEqual([]); 
+  it('empty circle list', () => {
+    expect(getAllIntersections([])).toEqual([]); 
   });
 
-  xit('duplicate circles', () => {
-    var circles = [
+  it('duplicate circles', () => {
+    var c0 = {
+      id: 1,
+      x: 369, 
+      y: 369,
+      radius: 369,
+    };
+
+    expect(getAllIntersections([c0,c0])).toEqual([]); 
+    expect(getAllIntersections([c0,c0, c0])).toEqual([]); 
+  });
+
+  it('same dimensions', () => {
+    var same_1 = [
       {
         id: 1,
-        center: {x: 100, y: 100},
-        radius: 50
+        x: 100, 
+        y: 100,
+        radius: 50,
       }, 
       {
         id: 2,
-        center: {x: 100, y: 100},
-        radius: 50
+        x: 100, 
+        y: 100,
+        radius: 50,
+      },
+    ];
+
+    var same_2 = [
+      {
+        id: 1,
+        x: 42, 
+        y: 42,
+        radius: 42,
+      }, 
+      {
+        id: 2,
+        x: 42, 
+        y: 42,
+        radius: 42,
+      }, 
+      {
+        id: 3,
+        x: 42, 
+        y: 42,
+        radius: 42,
       }, 
     ];
-    expect(getAllIntersections(circles)).toEqual([]); 
-  });
-
-  xit('circles w/ duplicate dimensions', () => {
-    var c1 = {id:3, x:20, y:20, radius: 5};
-    var c2 = {id:8, x:20, y:20, radius: 5};
-    var c3 = {id:8, x:20, y:20, radius: 5};
-    expect(getAllIntersections([c1,c2, c3])).toEqual([]);
+    expect(getAllIntersections(same_1)).toEqual([]); 
+    expect(getAllIntersections(same_2)).toEqual([]); 
   });
 
   xit('circles within other circles', () => {
