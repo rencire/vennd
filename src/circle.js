@@ -81,23 +81,35 @@ function isCircle(circle) {
  * @throws Will throw a Type Error if `circles` is not an array of circles.
  *
  * @example
+ * circle 1 overlaps with circle 4 and cricle 7
  * // returns:
  * // [
- * //   {},
- * //   {},
- * //   {},
- * //   {},
+ * //   {x:8, y:6, parentCircles:[1,4]},
+ * //   {x:8, y:14, parentCircles:[1,4]},
+ * //   {x:0, y:10, parentCircles:[1,7]},
+ * //   {x:5, y:15, parentCircles:[1,7]},
+ * //   {x:5, y:10, parentCircles:[4,7]},
+ * //   {x:6, y:13, parentCircles:[4,7]},
  * // ]
  *
-//  * var c0 = {id:1, x:
+ * var list = [
+ *  {id:1, x:5, y:10, radius:5},
+ *  {id:4, x:10, y:10, radius:5},
+ *  {id:7, x:2, y:13, radius:4},
+ * ]
  *
  */
 export function getAllIntersections(circles) {
   // 'circles' need to be an array
-  if (!circles || circles.constructor !== Array) return null;
+  // if (!circles || circles.constructor !== Array) return null;
 
   var points = [];
-  
+   
+  for (let i = 0, len = circles.length; i < len; i++) {
+    for (let j = i+1; j < len; j++) {
+      points = points.concat(getIntersections(circles[i], circles[j]));
+    }
+  }
 
 
   return points;

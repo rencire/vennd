@@ -100,32 +100,35 @@ describe('get correct intersections for two circles with...', () => {
 //TODO fill in pending tests
 describe('get all correct intersections for...', () => {
 
-  //TODO setup data to test
-  xit('multiple overlapping circles', () => {
-    // TODO add another circle to test
-    // let circles = [
-    //   {
-    //     id: 1,
-    //     center: {x: 100, y: 100},
-    //     radius: 50
-    //   }, 
-    //   {
-    //     id: 2,
-    //     center: {x: 105, y: 105},
-    //     radius: 50
-    //   }, 
-    // ];
-    //
-    // let points = [
-    //   {x:95.886, y:109.114, parentCircles: [1,2]},
-    //   {x:109.114, y:95.886, parentCircles: [1,2]},
-    // ];
-    // expect(getAllIntersections(circles)).toEqual(points); 
+  it('all overlap each other', () => {
+    var circles = [
+      {id:1, x:5, y:10, radius:5},
+      {id:4, x:10, y:10, radius:5},
+      {id:7, x:2, y:13, radius:4},
+    ];
+
+    var expected = [
+      {x:8, y:6,  parentCircles:[1,4]},
+      {x:8, y:14, parentCircles:[1,4]},
+      {x:0, y:10, parentCircles:[1,7]},
+      {x:5, y:15, parentCircles:[1,7]},
+      {x:5, y:10, parentCircles:[4,7]},
+      {x:6, y:13, parentCircles:[4,7]},
+    ];
+
+    var result = getAllIntersections(circles);
+
+    expect(result).toContain(expected[0]);
+    expect(result).toContain(expected[1]);
+    expect(result).toContain(expected[2]);
+    expect(result).toContain(expected[3]);
+    expect(result).toContain(expected[4]);
+    expect(result).toContain(expected[5]);
 
   });
 
   //TODO setup data to test 'exp_points', 'points', etc.
-  xit('multiple circles that do not all overlap', () => {
+  xit('two overlap each other, one overlap only one', () => {
     var circles = [
       {
         id: 1,
