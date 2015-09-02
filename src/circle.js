@@ -65,14 +65,33 @@ function isCircle(circle) {
 
   return typeof circle === 'object' &&
     typeof circle.radius === 'number' && 
-    typeof circle.center === 'object' &&
-    typeof circle.center.x === 'number' &&
-    typeof circle.center.y === 'number';
+    typeof circle.x === 'number' &&
+    typeof circle.y === 'number';
 }
 
 // circles = [
-//   {id: 3, center: {x,y}, radius: 50, selected: false, fileContent: e.target.result};
+//   {id: 3, x:23, y:22, radius: 50, selected: false, fileContent: e.target.result};
 // ]
+
+/*
+ * Calculates all the intersection points between all the circles.
+ * @param {Array} List of circles. 
+ * @returns {Array} List of intersection points between all circles.
+ *
+ * @throws Will throw a Type Error if `circles` is not an array of circles.
+ *
+ * @example
+ * // returns:
+ * // [
+ * //   {},
+ * //   {},
+ * //   {},
+ * //   {},
+ * // ]
+ *
+//  * var c0 = {id:1, x:
+ *
+ */
 export function getAllIntersections(circles) {
   // 'circles' need to be an array
   if (!circles || circles.constructor !== Array) return null;
@@ -91,8 +110,8 @@ export function getAllIntersections(circles) {
  * @param {object} c1 - circle two
  * @returns {Array} List of points that intersect a circle, or an empty array if no intersection points exist.
  *
- * @throws Will throw an error if both arguments aren't present.
- * @throws Will throw an error if both arguments aren't circles.
+ * @throws Will throw an Error if both arguments aren't present.
+ * @throws Will throw an Type Error if both arguments aren't circles.
  *
  * @example
  * // returns:
@@ -101,9 +120,9 @@ export function getAllIntersections(circles) {
  * //   {x:12.5, y:14.330, parentCircles: [1,2]}, 
  * // ]
  *
- * var c1 = {id:1, center:{x:10, y:10}, r: 5}, ... }
- * var c2 = {id:2, center:{x:15, y:10}, r: 5}, ... }
- * getIntersections(c1,c2);
+ * var c0 = {id:1, x:10, y:10, r: 5}, ... }
+ * var c1 = {id:2, x:15, y:10, r: 5}, ... }
+ * getIntersections(c0,c1);
  *
  * @see {@link http://mathworld.wolfram.com/Circle-CircleIntersection.html | Mathworld} for the math behind the code.
  *
@@ -132,8 +151,8 @@ export function getIntersections(c0,c1) {
   // console.log('c0.radius', c0.radius);
   // console.log('c1.radius', c1.radius);
 
-  dx = c1.center.x - c0.center.x;
-  dy = c1.center.y - c0.center.y;
+  dx = c1.x - c0.x;
+  dy = c1.y - c0.y;
   // console.log('dx', dx);
   // console.log('dy', dy);
 
@@ -153,7 +172,7 @@ export function getIntersections(c0,c1) {
   }
    
   // Same circle
-  if (isEqual(c0.center, c1.center) && c0.radius === c1.radius ) {
+  if (c0.x === c1.x && c0.y === c1.y && c0.radius === c1.radius ) {
     return result; 
   } 
 
@@ -166,18 +185,13 @@ export function getIntersections(c0,c1) {
   // console.log('h', h);
                   
   // Calculate x coordinate of 'midpoint'
-  xm = c0.center.x + (a/d) * dx; 
-  ym = c0.center.y + (a/d) * dy; 
+  xm = c0.x + (a/d) * dx; 
+  ym = c0.y + (a/d) * dy; 
 
   // Calculate delta between midpoint and intersection points
   i_dx = h * (dy/d);
   i_dy = h * (dx/d);
 
-  // console.log('i_dx', i_dx);
-  // console.log('i_dy', i_dy);
-  // console.log('math.round', Math.round10(123.456, -2));
-  
-  
   i_x1 = Math.round10(xm + i_dx, 0);
   i_x2 = Math.round10(xm - i_dx, 0);
 
@@ -204,11 +218,3 @@ export function getIntersections(c0,c1) {
 }
 
 
-// var a = {id:3, center:{x:20, y:20}, radius: 5};
-// var b = {id:4, center:{x:25, y:25}, radius: 6};
-//
-// var c = {id:1, center:{x:20, y:20}, radius: 7};
-// var d = {id:2, center:{x:30, y:20}, radius: 7};
-//
-// console.log(getIntersections(a,b));
-// console.log(getIntersections(c,d));

@@ -4,8 +4,8 @@ import {getAllIntersections, getIntersections} from './circle';
 
 describe('get correct intersections for two circles with...', () => {
   it('same radius, translated', () => {
-    var c1 = {id:1, center:{x:20, y:20}, radius: 7};
-    var c2 = {id:2, center:{x:30, y:20}, radius: 7};
+    var c1 = {id:1, x:20, y:20, radius: 7};
+    var c2 = {id:2, x:30, y:20, radius: 7};
 
     var exp_p1 = {x:25, y: 15};
     var exp_p2 = {x:25, y: 25};
@@ -24,8 +24,8 @@ describe('get correct intersections for two circles with...', () => {
   });
 
   it('different radius, different center coordinates', () => {
-    var c1 = {id:3, center:{x:20, y:20}, radius: 5};
-    var c2 = {id:4, center:{x:25, y:25}, radius: 6};
+    var c1 = {id:3, x:20, y:20, radius: 5};
+    var c2 = {id:4, x:25, y:25, radius: 6};
 
     var result = getIntersections(c1,c2).sort();
     var ip1 = result[0];
@@ -43,14 +43,14 @@ describe('get correct intersections for two circles with...', () => {
   });
 
   it('duplicate dimensions', () => {
-    var c1 = {id:3, center:{x:20, y:20}, radius: 5};
-    var c2 = {id:8, center:{x:20, y:20}, radius: 5};
+    var c1 = {id:3, x:20, y:20, radius: 5};
+    var c2 = {id:8, x:20, y:20, radius: 5};
     expect(getIntersections(c1,c2)).toEqual([]);
   });
 
   it('only one intersection point', () => {
-    var c1 = {id:4, center:{x:10, y:10}, radius:5};
-    var c2 = {id:7, center:{x:20, y:10}, radius:5};
+    var c1 = {id:4, x:10, y:10, radius:5};
+    var c2 = {id:7, x:20, y:10, radius:5};
     var result = getIntersections(c1, c2);
     var ip1 = result[0];
 
@@ -62,8 +62,8 @@ describe('get correct intersections for two circles with...', () => {
   });
 
   it('no intersection points', () => {
-    var c1 = {id:42, center:{x:0, y:0}, radius: 5};
-    var c2 = {id:3, center:{x:20, y:20}, radius: 5};
+    var c1 = {id:42, x:0, y:0, radius: 5};
+    var c2 = {id:3, x:20, y:20, radius: 5};
     
     expect(getIntersections(c1,c2)).toEqual([]);
   });
@@ -71,24 +71,26 @@ describe('get correct intersections for two circles with...', () => {
   it('circle within another circle', () => {
     var c1 = {
       id: 1,
-      center: {x: 20, y: 20},
+      x: 20,
+      y: 20,
       radius: 10
     }; 
 
     var c2 = {
       id: 5,
-      center: {x: 20, y: 20},
+      x: 20, 
+      y: 20,
       radius: 5
     };
     expect(getIntersections(c1,c2)).toEqual([]);
   });
 
   it('invalid input will throw errors', () => {
-    var c1 = {id:4, center:{x:10, y:10}, radius:5};
+    var c1 = {id:4, x:10, y:10, radius:5};
     expect(function(){getIntersections(c1)}).toThrowError("Not enough arguments");
     expect(function(){getIntersections(null,3)}).toThrowError(TypeError, "Arguments are not circles");
     expect(function(){getIntersections({},{})}).toThrowError(TypeError, "Arguments are not circles");
-    expect(function(){getIntersections({center:{}, radius:4},{})}).toThrowError(TypeError, "Arguments are not circles");
+    expect(function(){getIntersections({}, {radius:4}); }).toThrowError(TypeError, "Arguments are not circles");
   });
 
 });
@@ -173,9 +175,9 @@ describe('get all correct intersections for...', () => {
   });
 
   xit('circles w/ duplicate dimensions', () => {
-    var c1 = {id:3, center:{x:20, y:20}, radius: 5};
-    var c2 = {id:8, center:{x:20, y:20}, radius: 5};
-    var c3 = {id:8, center:{x:20, y:20}, radius: 5};
+    var c1 = {id:3, x:20, y:20, radius: 5};
+    var c2 = {id:8, x:20, y:20, radius: 5};
+    var c3 = {id:8, x:20, y:20, radius: 5};
     expect(getAllIntersections([c1,c2, c3])).toEqual([]);
   });
 
