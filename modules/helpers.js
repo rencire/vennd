@@ -39,4 +39,33 @@ function once(callback) {
   };
 }
 
-export { addEvent, getRandomInt, debounce};
+// Not bulletproof code...
+function isEqual(a,b) {
+  if (!(typeof a === 'object' || typeof b === 'object')){
+    return a === b;
+  } 
+
+  for (var prop in a) {
+    if (a.hasOwnProperty(prop)) {
+      var bool = isEqual(a[prop], b[prop]);
+      if (!bool) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+// console.log(isEqual({},{}));
+// // true
+// console.log(isEqual({a:1},{a:1}));
+// // true
+// console.log(isEqual({a:2},{b:2}));
+// // false
+// console.log(isEqual({a:{}},{a:{}}));
+// // true
+// console.log(isEqual({a:{b:2}},{a:{b:1}}));
+// // false
+// console.log(isEqual({a:{b:2, c:3}},{a:{b:2, c:4}}));
+// // false
+
+export { addEvent, getRandomInt, debounce, isEqual};

@@ -8,6 +8,7 @@ x click intersection of two circles, display results
 x drag n drop text file to Board to create circle 
 
 - highlight selected area of venn diagram
+- figure out why unit test 1 is failing (and figure out why JS sucks with floating point numbers)
 
 #Future tasks
 - make droplayer prettier

@@ -17,7 +17,8 @@ module.exports = function (config) {
         'src/*.spec.js'
       ],
       serveFiles: [
-        'src/!(*spec).js'
+        'src/!(*spec).js',
+        // 'modules#<{(|.js',
       ]
     },
 
