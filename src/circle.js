@@ -78,6 +78,7 @@ function isCircle(circle) {
  * @param {Array} List of circles. 
  * @returns {Array} List of intersection points between all circles.
  *
+ * @throws Will throw an Error if no argument is given.
  * @throws Will throw a Type Error if `circles` is not an array of circles.
  *
  * @example
@@ -102,6 +103,21 @@ function isCircle(circle) {
 export function getAllIntersections(circles) {
   // 'circles' need to be an array
   // if (!circles || circles.constructor !== Array) return null;
+  if (arguments.length === 0 || arguments.length > 1) {
+    throw new Error('Wrong number of arguments. Need one and only one argument');
+  }
+
+  if (!Array.isArray(circles)) {
+    throw new TypeError('Argument is not an array');
+  } 
+
+  var allCircles = circles.reduce((memo, circle) => {
+    return memo && isCircle(circle);
+  }, true);
+
+  if (!allCircles ) {
+     throw new TypeError('List is not all circles');
+  }
 
   var points = [];
    

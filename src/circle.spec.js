@@ -90,10 +90,10 @@ describe('get correct intersections for two circles with...', () => {
 
   it('invalid input will throw errors', () => {
     var c1 = {id:4, x:10, y:10, radius:5};
-    expect(function(){getIntersections(c1)}).toThrowError("Not enough arguments");
-    expect(function(){getIntersections(null,3)}).toThrowError(TypeError, "Arguments are not circles");
-    expect(function(){getIntersections({},{})}).toThrowError(TypeError, "Arguments are not circles");
-    expect(function(){getIntersections({}, {radius:4}); }).toThrowError(TypeError, "Arguments are not circles");
+    expect(() => {getIntersections(c1)}).toThrowError("Not enough arguments");
+    expect(() => {getIntersections(null,3)}).toThrowError(TypeError, "Arguments are not circles");
+    expect(() => {getIntersections({},{})}).toThrowError(TypeError, "Arguments are not circles");
+    expect(() => {getIntersections({}, {radius:4}); }).toThrowError(TypeError, "Arguments are not circles");
   });
 
 });
@@ -121,25 +121,42 @@ describe('get all correct intersections for...', () => {
 
     var result = getAllIntersections(circles);
 
-    expect(result).toContain(expected[0]);
-    expect(result).toContain(expected[1]);
-    expect(result).toContain(expected[2]);
-    expect(result).toContain(expected[3]);
-    expect(result).toContain(expected[4]);
-    expect(result).toContain(expected[5]);
+    for (var i = expected.length - 1; i >= 0; i--) {
+      expect(result).toContain(expected[i]);
+    }
 
   });
 
-  //TODO setup data to test 'exp_points', 'points', etc.
-  xit('two overlap each other, one overlap only one', () => {
+  it('two overlap each other, one overlap only one', () => {
     var circles = [
+      {id:1, x:20, y:20, radius:5},
+      {id:2, x:25, y:25, radius:4},
+      {id:3, x:12, y:20, radius:5},
     ];
 
-    var expected = [];
+    var expected = [
+      {x:16, y:17,  parentCircles:[1,3]},
+      {x:16, y:23, parentCircles:[1,3]},
+      {x:21, y:25,  parentCircles:[1,2]},
+      {x:25, y:21, parentCircles:[1,2]},
+    ];
 
+    var result = getAllIntersections(circles);
+
+    for (var i = expected.length - 1; i >= 0; i--) {
+      expect(result).toContain(expected[i]);
+    }
   });
 
-  xit('multiple circles with no overlap', () => {
+  it('multiple circles with no overlap', () => {
+    var circles = [
+      {id:1, x:7, y:7, radius:5},
+      {id:2, x:10, y:25, radius:4},
+      {id:3, x:20, y:15, radius:4},
+    ];
+
+    expect(getAllIntersections(circles)).toEqual([]);
+    
   });
 
   it('empty circle list', () => {
@@ -198,34 +215,57 @@ describe('get all correct intersections for...', () => {
     expect(getAllIntersections(same_2)).toEqual([]); 
   });
 
-  xit('circles within other circles', () => {
+  it('circle within a circle within another circle', () => {
     var circles = [
       {
         id: 1,
-        center: {x: 10, y: 10},
+        x: 10, 
+        y: 10,
         radius: 10
       }, 
       {
         id: 5,
-        center: {x: 10, y: 10},
+        x: 10,
+        y: 10,
         radius: 5
       }, 
       {
         id: 9,
-        center: {x: 10, y: 10},
+        x: 10,
+        y: 10,
         radius: 2
       }, 
     ];
     expect(getAllIntersections(circles)).toEqual([]);
   });
 
-  xit('circle1 intersect w/ circle2, both within circle3', () => {
+  // TODO add test data
+  it('circle1 intersect w/ circle2, both within circle3', () => {
+    var circles = [
+      {id:3, x:22, y:20, radius:10},
+      {id:2, x:25, y:20, radius:5},
+      {id:1, x:20, y:20, radius:5},
+    ];
+
+    var expected = [
+      {x:23, y:16,  parentCircles:[2,1]},
+      {x:23, y:24,  parentCircles:[2,1]},
+    ];
+
+    var result = getAllIntersections(circles);
+
+    expect(result).toContain(expected[0]);
+    expect(result).toContain(expected[1]);
   });
 
-  xit('invalid input', () => {
-    expect(getAllIntersections(null)).toThrowError('Argument is not a list'); 
-    expect(getAllIntersections(123)).toThrowError('Argument is not a list'); 
-    expect(getAllIntersections('abcd')).toThrowError('Argument is not a list'); 
+  it('invalid input', () => {
+    expect(() => {getAllIntersections()}).toThrowError('Wrong number of arguments. Need one and only one argument'); 
+    expect(() => {getAllIntersections(null)}).toThrowError(TypeError, 'Argument is not an array'); 
+    expect(() => {getAllIntersections(123)}).toThrowError(TypeError, 'Argument is not an array'); 
+    expect(() => {getAllIntersections('abcd')}).toThrowError(TypeError, 'Argument is not an array'); 
+    expect(() => {getAllIntersections(undefined)}).toThrowError(TypeError, 'Argument is not an array'); 
+    var circles = [{id:1, x:1, y:2, radius:5}, {blah:'bloop'}];
+    expect(() => {getAllIntersections(circles)}).toThrowError(TypeError, 'List is not all circles'); 
   });
 });
 
