@@ -1,16 +1,24 @@
-#Current
-*x Make circles clickable and draggable
+## Tasks
+
+# Current
+- highlight selected area of venn diagram 
+  - NOTE: only consider simplest case: 2 or more circles intersect, click on intersect area. For future, consider case when a different, 'clicked' circle overlaps intersection area.
+
+  x get all intersection points of 'clicked' circles with each other
+  - start from midpoint in group of intersections
+  - going clockwise, find common parentCircle in each pair of points.
+  - generate arcs with p1, p2, and parentCircle's radius.
+  - draw path with arcs data.
+
+# Future 
+- make droplayer prettier
+
+
+# Past
+x Make circles clickable and draggable
 x Allow user to remove circle.
 x upload a file, show a circle representing the file
 x drag file to browser window, display droplayer overlay on svg
 x select a circle, display corresponding file contents
 x click intersection of two circles, display results 
 x drag n drop text file to Board to create circle 
-
-- highlight selected area of venn diagram
-- figure out why unit test 1 is failing (and figure out why JS sucks with floating point numbers)
-
-#Future tasks
-- make droplayer prettier
-
-

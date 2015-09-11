@@ -269,3 +269,57 @@ describe('get all correct intersections for...', () => {
   });
 });
 
+
+// Tests for checking if point is within a list of circles
+
+describe('isCircle correctly checks if point is in a circle...', () => {
+  xit('point in a circle', () => {
+
+  }); 
+
+  xit('point not in circle', () => {
+
+  }); 
+
+  xit('point exactly on the circumference line of circle', () => {
+
+  }); 
+
+
+  xit('invalid circles', () => {
+
+  }); 
+
+  xit('invalid points', () => {
+
+  }); 
+
+});
+
+describe('pointsWithinCircles() returns correct list of points for...', () => {
+  xit('point in circle', () => {
+
+  }); 
+
+  xit('point not in circle', () => {
+
+  }); 
+
+  xit('point exactly on the circumference line of circle', () => {
+
+  }); 
+
+  xit('empty list of points', () => {
+
+  }); 
+
+  xit('empty list of circles', () => {
+
+  }); 
+
+  // xit('invalid circles', () => {
+  //
+  // }); 
+});
+
+
