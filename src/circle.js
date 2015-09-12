@@ -69,6 +69,17 @@ function isCircle(circle) {
     typeof circle.y === 'number';
 }
 
+function isPoint(point) {
+  // cannot be undefined or null, or any falsy value
+  if (!point) {
+    return false;
+  }
+
+  return typeof point.x === 'number' &&
+    typeof point.y === 'number' &&
+    Array.isArray(point.parentCircles); 
+}
+
 // circles = [
 //   {id: 3, x:23, y:22, radius: 50, selected: false, fileContent: e.target.result};
 // ]
@@ -246,3 +257,38 @@ export function getIntersections(c0,c1) {
 }
 
 
+/*
+ * Find out if point is within circle
+ * @param {object} point - an intersection point.
+ * @param {object} circle - a circle.
+ * @returns {boolean} 
+ *   Return true if `point` is within the `circle` (including on the line). Otherwise return false.
+ *
+ * @throws Will throw an Error if both arguments aren't present.
+ * @throws Will throw an Type Error if `point` and `circle` are not their respective types.
+ *
+ * NOTE: consider optimizing by looking into point.parentCircles.  No need to recalculate if point is in circle 'A', if point.parentCircles includes 'A'.
+*/
+export function isInCircle(point,circle) {
+  if (point === undefined || circle === undefined) {
+    throw new Error("Not enough arguments");
+  }
+
+  // try {
+  //   check(point,  isPoint);
+  // } catch (e) {
+  //   #<{(| handle error |)}>#
+  //   console.log(e);
+  // }
+  check(point,  isPoint);
+  check(circle, isCircle);
+
+}
+
+// Alternative, more rigorous approach: check if args are instances of respective Class. 
+// However we will have to refactor the rest of code to use Classes as well.
+function check(arg, checker) {
+  if (!checker.call(undefined, arg)) {
+    throw new Error('Checker failed for argument\n\tChecker: ' + checker + '\n\tArg: ' + arg); 
+  }
+}

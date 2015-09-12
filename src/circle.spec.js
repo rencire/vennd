@@ -1,6 +1,6 @@
 'use strict';
 
-import {getAllIntersections, getIntersections} from './circle';
+import {getAllIntersections, getIntersections, isInCircle} from './circle';
 
 // NOTE: Test data generated from Wolfram Alpha.
 // e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
@@ -272,27 +272,53 @@ describe('get all correct intersections for...', () => {
 
 // Tests for checking if point is within a list of circles
 
-describe('isCircle correctly checks if point is in a circle...', () => {
-  xit('point in a circle', () => {
+describe('isInCircle correctly checks if point is in a circle...', () => {
+  xit('points are in a circle', () => {
+    var c = {id:2, x:20, y:30, radius:5};
+    var p = {x:21, y:33, parentCircles:[3]};
 
+    expect(isInCircle(p,c).toEqual(true));
   }); 
 
   xit('point not in circle', () => {
-
+    var c = {id:2, x:20, y:30, radius:5};
+    var p = {x:19, y:23, parentCircles:[42]};
+    expect(isInCircle(p,c).toEqual(true));
   }); 
 
-  xit('point exactly on the circumference line of circle', () => {
-
+  xit('points exactly on the circumference line of circle', () => {
+    var c0 = {id:2, x:20, y:30, radius:5};
+    var c1 = {id:3, x:23, y:30, radius:5};
+    var p = {x:22, y:25, parentCircles:[2,3]}; //intersection point on c0
+    expect(isInCircle(p,c0).toEqual(true));
+    expect(isInCircle(p,c1).toEqual(true));
   }); 
 
 
-  xit('invalid circles', () => {
+  it('invalid/valid circles', () => {
+    var p = {x:20, y:30, parentCircles:[2,3]};
+    var c0 = {blah:1}; // missing 'id', 'x', 'y', and 'radius'
+    var c1 = {id:3, y:20, radius:10}; // missing 'x'
 
+    var c2 = {id:3, x:10, y:20, radius:10}; 
+ 
+    // something is very wrong here, 
+    expect(() => {isInCircle(p, c0)}).toThrowError(); 
+    expect(() => {isInCircle(p, c1)}).toThrowError(); 
+
+    expect(() => {isInCircle(p, c2)}).not.toThrowError(); 
   }); 
 
   xit('invalid points', () => {
 
   }); 
+
+  it('not enough arguments', ()=> {
+    var p = {x:20, y:30, radius:5, parentCircles:[2,3]};
+    expect(() => {isInCircle()}).toThrowError('Not enough arguments'); 
+    expect(() => {isInCircle(p)}).toThrowError('Not enough arguments'); 
+    expect(() => {isInCircle('hi')}).toThrowError('Not enough arguments'); 
+  });
 
 });
 
