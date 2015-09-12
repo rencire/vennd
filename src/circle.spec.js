@@ -303,8 +303,8 @@ describe('isInCircle correctly checks if point is in a circle...', () => {
     var c2 = {id:3, x:10, y:20, radius:10}; 
  
     // something is very wrong here, 
-    expect(() => {isInCircle(p, c0)}).toThrowError(); 
-    expect(() => {isInCircle(p, c1)}).toThrowError(); 
+    expect(() => {isInCircle(p, c0)}).toThrowError(TypeError, "Argument 'circle' is not a circle"); 
+    expect(() => {isInCircle(p, c1)}).toThrowError(TypeError, "Argument 'circle' is not a circle"); 
 
     expect(() => {isInCircle(p, c2)}).not.toThrowError(); 
   }); 

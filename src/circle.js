@@ -274,17 +274,17 @@ export function isInCircle(point,circle) {
     throw new Error("Not enough arguments");
   }
 
-  // try {
-  //   check(point,  isPoint);
-  // } catch (e) {
-  //   #<{(| handle error |)}>#
-  //   console.log(e);
-  // }
-  check(point,  isPoint);
-  check(circle, isCircle);
+  if (!isPoint(point)) {
+    throw new TypeError("Argument 'point' is not a point");
+  }
+
+  if (!isCircle(circle)) {
+    throw new TypeError("Argument 'circle' is not a circle");
+  }
 
 }
 
+// TODO clean this up, not using at the moment.
 // Alternative, more rigorous approach: check if args are instances of respective Class. 
 // However we will have to refactor the rest of code to use Classes as well.
 function check(arg, checker) {
