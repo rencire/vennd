@@ -293,13 +293,28 @@ export function isInCircle(point,circle) {
   var yd = point.y - circle.y;
 
   // Below function might fail since x,y values are rounded to whole number
-  // 
-  return (xd*xd + yd*yd) <= (circle.radius*circle.radius);
+  // Should we just round both sides?
+  return Math.round((xd*xd + yd*yd), 0) <= Math.round((circle.radius*circle.radius), 0);
 
 }
 
 
+export function pointsWithinCircles(points, circles){
+  return points.filter((point) => {
+    return circles.reduce((memo, circle) => {
+      return isInCircle(point, circle) && memo;
+    }, true);
+  });
+}
 
+// Generate paths to draw arcs
+export function genPaths(clickedCircles, allCircles){
+  var points = getAllIntersections(allCircles);
+  var borderingPoints = pointsWithinCircles(points,clickedCircles);
+
+
+
+}
 
 
 // TODO clean this up, not using at the moment.

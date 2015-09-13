@@ -1,7 +1,7 @@
 'use strict';
 // jshint ignore: start
 
-import {getAllIntersections, getIntersections, isInCircle} from './circle';
+import {getAllIntersections, getIntersections, isInCircle, pointsWithinCircles} from './circle';
 
 // NOTE: Test data generated from Wolfram Alpha.
 // e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
@@ -337,25 +337,100 @@ describe('isInCircle correctly checks if point is in a circle...', () => {
 
 });
 
-describe('pointsWithinCircles() returns correct list of points for...', () => {
-  xit('points in circle', () => {
-
+describe('pointsWithinCircles() returns correct list of points covered by all circles:', () => {
+  it('points in one circle', () => {
+    var points = [{x:20, y:25, parentCircles:[1]}];
+    var circles = [{x:20, y:20, radius:10}];
+    expect(pointsWithinCircles(points,circles)).toContain(points[0]);
   }); 
 
-  xit('point not in circle', () => {
-
+  it('points in all circles', () => {
+    var points = [
+      {x:16, y:20, parentCircles:[]},
+      {x:16, y:17, parentCircles:[1,2]},
+      {x:16, y:23, parentCircles:[1,2]}
+    ];
+    var circles = [
+      {id: 1, x:12, y:20, radius:5},
+      {id: 2, x:20, y:20, radius:5},
+      {id: 3, x:16, y:20, radius:36},
+    ]
+    for (var i = 0, len = points.length; i < len; i++) {
+      expect(pointsWithinCircles(points,circles)).toContain(points[i]);
+    }
   }); 
 
-  xit('point exactly on the circumference line of circle', () => {
+  it('points in some circles', () => {
+    var points = [
+      {x:16, y:19, parentCircles:[]},
+      {x:16, y:17, parentCircles:[1,2]},// 1,2 intersection points
+      {x:16, y:23, parentCircles:[1,2]}, // 1,2 intersection points
+    ];
+    var two_circles = [
+      {id: 1, x:12, y:20, radius:5},
+      {id: 2, x:20, y:20, radius:5},
+    ];
 
+    var three_circles = [
+      {id: 1, x:12, y:20, radius:5},
+      {id: 2, x:20, y:20, radius:5},
+      {id: 3, x:60, y:25, radius:5},
+    ];
+
+    for (var i = 0, len = points.length; i < len; i++) {
+      expect(pointsWithinCircles(points,two_circles)).toContain(points[i]);
+    }
+
+    for (var i = 0, len = points.length; i < len; i++) {
+      expect(pointsWithinCircles(points,three_circles)).not.toContain(points[i]);
+    }
   }); 
 
-  xit('empty list of points', () => {
+  it('points not in one circle', () => {
+    var points = [
+      {x:10, y:10, parentCircles:[]},
+      {x:35, y:20, parentCircles:[]},
+    ];
+    var circles = [{x:20, y:20, radius:10}];
 
+    for (var i = 0, len = points.length; i < len; i++) {
+      expect(pointsWithinCircles(points,circles)).not.toContain(points[i]);
+    }
+  }); 
+
+  it('points exactly on the circumference line of one circle, covered by all other circle', () => {
+    var points = [
+      {x:29.2, y:16.081, parentCircles:[1]}, // need 3 sig fig to be accurate
+      {x:29.2, y:23.919, parentCircles:[1]},
+    ];
+    var circles = [
+      {id: 1, x:20, y:20, radius:10},
+      {id: 2, x:30, y:20, radius:10},
+      {id: 3, x:30, y:25, radius:10},
+    ];
+    
+    expect(pointsWithinCircles(points,circles)).toContain(points[0]);
+    expect(pointsWithinCircles(points,circles)).toContain(points[1]);
+  }); 
+
+  it('empty list of points', () => {
+    var points = [];
+    var circles = [
+      {id: 1, x:20, y:20, radius:10},
+      {id: 2, x:30, y:20, radius:10},
+      {id: 3, x:30, y:25, radius:10},
+    ];
+    expect(pointsWithinCircles(points,circles)).toEqual([]);
   }); 
 
   xit('empty list of circles', () => {
+    var points = [
+      {x:29.2, y:16.081, parentCircles:[1]}, // need 3 sig fig to be accurate
+      {x:29.2, y:23.919, parentCircles:[1]},
+    ];
 
+    var circles = [];
+    expect(pointsWithinCircles(points,circles)).toEqual([]);
   }); 
 
   // xit('invalid circles', () => {
