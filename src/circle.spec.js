@@ -273,25 +273,27 @@ describe('get all correct intersections for...', () => {
 // Tests for checking if point is within a list of circles
 
 describe('isInCircle correctly checks if point is in a circle...', () => {
-  xit('points are in a circle', () => {
-    var c = {id:2, x:20, y:30, radius:5};
+  it('points are in a circle', () => {
     var p = {x:21, y:33, parentCircles:[3]};
-
-    expect(isInCircle(p,c).toEqual(true));
-  }); 
-
-  xit('point not in circle', () => {
     var c = {id:2, x:20, y:30, radius:5};
-    var p = {x:19, y:23, parentCircles:[42]};
-    expect(isInCircle(p,c).toEqual(true));
+
+    expect(isInCircle(p,c)).toEqual(true);
   }); 
 
-  xit('points exactly on the circumference line of circle', () => {
+  it('point not in circle', () => {
+    var p = {x:19, y:23, parentCircles:[42]};
+    var c = {id:2, x:20, y:30, radius:5};
+
+    expect(isInCircle(p,c)).toEqual(false);
+  }); 
+
+  it('points exactly on the circumference line of circle', () => {
+    var p0 = {x:15, y:30, parentCircles:[2]}; 
+    var p1 = {x:25, y:30, parentCircles:[2]}; 
     var c0 = {id:2, x:20, y:30, radius:5};
-    var c1 = {id:3, x:23, y:30, radius:5};
-    var p = {x:22, y:25, parentCircles:[2,3]}; //intersection point on c0
-    expect(isInCircle(p,c0).toEqual(true));
-    expect(isInCircle(p,c1).toEqual(true));
+
+    expect(isInCircle(p0,c0)).toEqual(true);
+    expect(isInCircle(p1,c0)).toEqual(true);
   }); 
 
 
@@ -302,14 +304,22 @@ describe('isInCircle correctly checks if point is in a circle...', () => {
 
     var c2 = {id:3, x:10, y:20, radius:10}; 
  
-    // something is very wrong here, 
     expect(() => {isInCircle(p, c0)}).toThrowError(TypeError, "Argument 'circle' is not a circle"); 
     expect(() => {isInCircle(p, c1)}).toThrowError(TypeError, "Argument 'circle' is not a circle"); 
 
     expect(() => {isInCircle(p, c2)}).not.toThrowError(); 
   }); 
 
-  xit('invalid points', () => {
+  it('invalid/valid points', () => {
+    var p0 = {y:30, parentCircles:[2,3]};
+    var p1 = {y:30, parentCircles:null};
+    var p2 = {x:20, y:30, parentCircles:[2,3]};
+
+    var c = {id:2, x:20, y:30, radius:5};
+
+    expect(() => {isInCircle(p0, c)}).toThrowError(TypeError, "Argument 'point' is not a point"); 
+    expect(() => {isInCircle(p1, c)}).toThrowError(TypeError, "Argument 'point' is not a point"); 
+    expect(() => {isInCircle(p2, c)}).not.toThrowError(TypeError, "Argument 'point' is not a point"); 
 
   }); 
 
@@ -323,7 +333,7 @@ describe('isInCircle correctly checks if point is in a circle...', () => {
 });
 
 describe('pointsWithinCircles() returns correct list of points for...', () => {
-  xit('point in circle', () => {
+  xit('points in circle', () => {
 
   }); 
 

@@ -267,7 +267,13 @@ export function getIntersections(c0,c1) {
  * @throws Will throw an Error if both arguments aren't present.
  * @throws Will throw an Type Error if `point` and `circle` are not their respective types.
  *
- * NOTE: consider optimizing by looking into point.parentCircles.  No need to recalculate if point is in circle 'A', if point.parentCircles includes 'A'.
+ * NOTE: because we round off x,y values for points, points might not 
+ * satisfy circle equation for cases when the point is on the circumference line.
+ *
+ * TODO Consider not rounding points until we have to map it to pixel locations 
+ * in SVG when rendering.
+ *  
+ * TODO Consider optimizing by looking into point.parentCircles.  No need to recalculate if point is in circle 'A', if point.parentCircles includes 'A'.
 */
 export function isInCircle(point,circle) {
   if (point === undefined || circle === undefined) {
@@ -282,7 +288,17 @@ export function isInCircle(point,circle) {
     throw new TypeError("Argument 'circle' is not a circle");
   }
 
+
+  var xd = point.x - circle.x;
+  var yd = point.y - circle.y;
+
+  return (xd*xd + yd*yd) <= (circle.radius*circle.radius);
+
 }
+
+
+
+
 
 // TODO clean this up, not using at the moment.
 // Alternative, more rigorous approach: check if args are instances of respective Class. 
