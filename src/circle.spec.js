@@ -1,17 +1,19 @@
 'use strict';
+// jshint ignore: start
 
 import {getAllIntersections, getIntersections, isInCircle} from './circle';
 
 // NOTE: Test data generated from Wolfram Alpha.
 // e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
 //
+// Using 'toContain()' because we don't care about order of elements in parentCircles
 describe('get correct intersections for two circles with...', () => {
   it('same radius, translated', () => {
     var c1 = {id:1, x:20, y:20, radius: 7};
     var c2 = {id:2, x:30, y:20, radius: 7};
 
-    var exp_p1 = {x:25, y: 15};
-    var exp_p2 = {x:25, y: 25};
+    var exp_p1 = {x:25, y: 15.1};
+    var exp_p2 = {x:25, y: 24.9};
 
     var result = getIntersections(c1,c2).sort();
     var res_p1 = result[0];
@@ -34,13 +36,13 @@ describe('get correct intersections for two circles with...', () => {
     var ip1 = result[0];
     var ip2 = result[1];
 
-    expect(ip1.x).toEqual(25);
+    expect(ip1.x).toEqual(24.9);
     expect(ip1.y).toEqual(19);
     expect(ip1.parentCircles).toContain(3);
     expect(ip1.parentCircles).toContain(4);
 
     expect(ip2.x).toEqual(19);
-    expect(ip2.y).toEqual(25);
+    expect(ip2.y).toEqual(24.9);
     expect(ip2.parentCircles).toContain(3);
     expect(ip2.parentCircles).toContain(4);
   });
@@ -100,7 +102,7 @@ describe('get correct intersections for two circles with...', () => {
 
 
 
-//TODO fill in pending tests
+// NOTE: Got lazy writing toContain(), so specifying parentCircles in expected points.  But remember, order of elements within parentCircles does not matter.
 describe('get all correct intersections for...', () => {
 
   it('all overlap each other', () => {
@@ -111,11 +113,11 @@ describe('get all correct intersections for...', () => {
     ];
 
     var expected = [
-      {x:8, y:6,  parentCircles:[1,4]},
-      {x:8, y:14, parentCircles:[1,4]},
-      {x:0, y:10, parentCircles:[1,7]},
-      {x:5, y:15, parentCircles:[1,7]},
-      {x:5, y:10, parentCircles:[4,7]},
+      {x:7.5, y:5.67,  parentCircles:[1,4]},
+      {x:7.5, y:14.33, parentCircles:[1,4]},
+      {x:0.02, y:9.52, parentCircles:[1,7]},
+      {x:5.48, y:14.98, parentCircles:[1,7]},
+      {x:5.01, y:10.37, parentCircles:[4,7]},
       {x:6, y:13, parentCircles:[4,7]},
     ];
 
@@ -137,8 +139,8 @@ describe('get all correct intersections for...', () => {
     var expected = [
       {x:16, y:17,  parentCircles:[1,3]},
       {x:16, y:23, parentCircles:[1,3]},
-      {x:21, y:25,  parentCircles:[1,2]},
-      {x:25, y:21, parentCircles:[1,2]},
+      {x:21, y:24.9,  parentCircles:[1,2]},
+      {x:24.9, y:21, parentCircles:[1,2]},
     ];
 
     var result = getAllIntersections(circles);
@@ -239,7 +241,6 @@ describe('get all correct intersections for...', () => {
     expect(getAllIntersections(circles)).toEqual([]);
   });
 
-  // TODO add test data
   it('circle1 intersect w/ circle2, both within circle3', () => {
     var circles = [
       {id:3, x:22, y:20, radius:10},
@@ -248,8 +249,8 @@ describe('get all correct intersections for...', () => {
     ];
 
     var expected = [
-      {x:23, y:16,  parentCircles:[2,1]},
-      {x:23, y:24,  parentCircles:[2,1]},
+      {x:22.5, y:15.67,  parentCircles:[2,1]},
+      {x:22.5, y:24.33,  parentCircles:[2,1]},
     ];
 
     var result = getAllIntersections(circles);
@@ -290,10 +291,14 @@ describe('isInCircle correctly checks if point is in a circle...', () => {
   it('points exactly on the circumference line of circle', () => {
     var p0 = {x:15, y:30, parentCircles:[2]}; 
     var p1 = {x:25, y:30, parentCircles:[2]}; 
-    var c0 = {id:2, x:20, y:30, radius:5};
+    var p2 = {x:22.5, y:25.23, parentCircles:[2,3]};  
 
-    expect(isInCircle(p0,c0)).toEqual(true);
-    expect(isInCircle(p1,c0)).toEqual(true);
+    var c2 = {id:2, x:20, y:30, radius:5};
+    var c3 = {id:3, x:23, y:30, radius:5};
+
+    expect(isInCircle(p0,c2)).toEqual(true);
+    expect(isInCircle(p1,c2)).toEqual(true);
+    expect(isInCircle(p2,c3)).toEqual(true);
   }); 
 
 

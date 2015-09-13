@@ -231,11 +231,11 @@ export function getIntersections(c0,c1) {
   i_dx = h * (dy/d);
   i_dy = h * (dx/d);
 
-  i_x1 = Math.round10(xm + i_dx, 0);
-  i_x2 = Math.round10(xm - i_dx, 0);
+  i_x1 = Math.round10(xm + i_dx, -2);
+  i_x2 = Math.round10(xm - i_dx, -2);
 
-  i_y1 = Math.round10(ym - i_dy, 0);
-  i_y2 = Math.round10(ym + i_dy, 0);
+  i_y1 = Math.round10(ym - i_dy, -2);
+  i_y2 = Math.round10(ym + i_dy, -2);
 
   // Add first intersection point
   result.push({
@@ -292,6 +292,8 @@ export function isInCircle(point,circle) {
   var xd = point.x - circle.x;
   var yd = point.y - circle.y;
 
+  // Below function might fail since x,y values are rounded to whole number
+  // 
   return (xd*xd + yd*yd) <= (circle.radius*circle.radius);
 
 }
