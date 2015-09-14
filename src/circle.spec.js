@@ -360,6 +360,22 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
     }
   }); 
 
+  it('intersection points of three circles', () => {
+    var points = [
+      {x:15, y:28.66, parentCircles:[1,2]},//28.66
+      {x:19.92, y:21.29, parentCircles:[1,3]},// 19.916, 21.2919
+      {x:10.08, y:21.29, parentCircles:[2,3]}// 10.08, 21.29
+    ];
+    var circles = [
+      {id: 1, x:10, y:20, radius:10},
+      {id: 2, x:20, y:20, radius:10},
+      {id: 3, x:15, y:30, radius:10},
+    ]
+    for (var i = 0, len = points.length; i < len; i++) {
+      expect(pointsWithinCircles(points,circles)).toContain(points[i]);
+    }
+  });
+
   it('points in some circles', () => {
     var points = [
       {x:16, y:19, parentCircles:[]},
@@ -423,14 +439,14 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
     expect(pointsWithinCircles(points,circles)).toEqual([]);
   }); 
 
-  xit('empty list of circles', () => {
+  it('empty list of circles', () => {
     var points = [
       {x:29.2, y:16.081, parentCircles:[1]}, // need 3 sig fig to be accurate
       {x:29.2, y:23.919, parentCircles:[1]},
     ];
 
     var circles = [];
-    expect(pointsWithinCircles(points,circles)).toEqual([]);
+    expect(pointsWithinCircles(points,circles)).toEqual(points);
   }); 
 
   // xit('invalid circles', () => {
@@ -439,3 +455,8 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
 });
 
 
+describe('genArcs() should return arcs for the given input...', () => {
+});
+
+describe('getMidpoint() finds the midpoint for a group of points...', () => {
+});

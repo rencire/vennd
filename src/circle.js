@@ -292,13 +292,21 @@ export function isInCircle(point,circle) {
   var xd = point.x - circle.x;
   var yd = point.y - circle.y;
 
-  // Below function might fail since x,y values are rounded to whole number
-  // Should we just round both sides?
+  // Rounding values to avoid edge cases where points have > 2 sig figs
+  // Seems brittle, consider just using 3 sig figs for all x,y values in codebase
   return Math.round((xd*xd + yd*yd), 0) <= Math.round((circle.radius*circle.radius), 0);
 
 }
 
-
+/*
+ * Returns points that are 'covered' by all circles in `circles`.
+ *
+ * @param {Array} points - list of intersection points.
+ * @param {Array} circles - list of circles to test point coverage.
+ * @returns {Array} List of intersection points that are also within `circles`.
+ *  Also includes points that lie on the circumference line a circle.
+ *
+ */
 export function pointsWithinCircles(points, circles){
   return points.filter((point) => {
     return circles.reduce((memo, circle) => {
@@ -308,12 +316,16 @@ export function pointsWithinCircles(points, circles){
 }
 
 // Generate paths to draw arcs
-export function genPaths(clickedCircles, allCircles){
-  var points = getAllIntersections(allCircles);
-  var borderingPoints = pointsWithinCircles(points,clickedCircles);
+//
+export function genArcs(points){
+  // get midpoint
+  // in counterclockwise direction from angle 0 to 360, create arc for each pair of points 
+  // return list of arcs
 
+}
 
-
+export function getMidpoint(points) {
+  
 }
 
 
