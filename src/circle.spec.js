@@ -1,7 +1,7 @@
 'use strict';
 // jshint ignore: start
 
-import {getAllIntersections, getIntersections, isInCircle, pointsWithinCircles} from './circle';
+import {getAllIntersections, getIntersections, isInCircle, pointsWithinCircles, getCentroid} from './circle';
 
 // NOTE: Test data generated from Wolfram Alpha.
 // e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
@@ -456,7 +456,62 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
 
 
 describe('genArcs() should return arcs for the given input...', () => {
+
 });
 
-describe('getMidpoint() finds the midpoint for a group of points...', () => {
+describe('getCentroid() finds the midpoint of...', () => {
+  it('three points - whole number', () => {
+    var exp = {x:2, y:2};  
+    var points = [
+      {x:1, y:1},
+      {x:3, y:1},
+      {x:2, y:4},
+    ];
+    expect(getCentroid(points)).toEqual(exp);
+  });
+
+  it('four points - decimal number', () => {
+    var exp = {x:2.5, y:2.5};  
+    var points = [
+      {x:1, y:1},
+      {x:1, y:4},
+      {x:4, y:1},
+      {x:4, y:4},
+    ];
+    expect(getCentroid(points)).toEqual(exp);
+  });
+
+  it('many points', () => {
+    var exp = {x:18, y: 29};  
+    var points = [
+      {x:10, y:1},
+      {x:20, y:80},
+      {x:50, y:40},
+      {x:10, y:20},
+      {x:0, y:4},
+    ];
+    expect(getCentroid(points)).toEqual(exp);
+  });
+
+  it('two points', () => {
+    var exp = {x:26, y:36.5};  
+    var points = [
+      {x:10, y:40},
+      {x:42, y:33},
+    ];
+    expect(getCentroid(points)).toEqual(exp);
+  });
+
+  it('one point', () => {
+    var exp = {x:42, y:42};  
+    var points = [
+      {x:42, y:42},
+    ];
+    expect(getCentroid(points)).toEqual(exp);
+    
+  });
+
+  it('no points', () => {
+    expect(getCentroid([])).toEqual(null);
+  });
 });

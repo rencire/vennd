@@ -317,15 +317,33 @@ export function pointsWithinCircles(points, circles){
 
 // Generate paths to draw arcs
 //
-export function genArcs(points){
+export function genArcs(points, circles){
   // get midpoint
-  // in counterclockwise direction from angle 0 to 360, create arc for each pair of points 
+  // in counterclockwise direction from angle 0 to 360 from center, create arc for each pair of points 
   // return list of arcs
 
 }
 
-export function getMidpoint(points) {
-  
+/*
+ * Calculates centroid from list of points.
+ * @param {Array} points - List of Objects that have 'x' and 'y' properties.
+ * @returns {Object} centroid as an Object with x,y coordinates, if centroid exists.  Else returns null.
+ *
+ * NOTE: points do not need to have parentCircles
+ */
+export function getCentroid(points) {
+  if (points.length === 0) {
+    return null; 
+  }
+  var centroid = points.reduce((memo, point) => {
+    memo.x += point.x;
+    memo.y += point.y;
+    return memo;
+  });
+
+  centroid.x = centroid.x / points.length;
+  centroid.y = centroid.y / points.length;
+  return centroid;
 }
 
 
