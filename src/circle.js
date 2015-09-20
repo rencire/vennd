@@ -317,11 +317,26 @@ export function pointsWithinCircles(points, circles){
 
 // Generate paths to draw arcs
 //
+// NOTE: if Math.atan2(dy, dx) < 0, add 2*Math.PI
+/*
+ * @param {Array} points - list of points representing an intersection area.
+ * @param {Array} circles - list of all circles.
+ * @returns {Array} list of Objects with data for drawing an Arc.
+ */
 export function genArcs(points, circles){
   // get midpoint
   // in counterclockwise direction from angle 0 to 360 from center, create arc for each pair of points 
   // return list of arcs
 
+  points.map(function(point) {
+    var origin = getCentroid(points);
+    var dx = point.x - origin.x;
+    var dy = point.y - origin.y;
+
+
+  });
+
+  Math.atan2();
 }
 
 /*

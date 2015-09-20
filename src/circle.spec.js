@@ -456,7 +456,101 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
 
 
 describe('genArcs() should return arcs for the given input...', () => {
+  xit('more than two points, same radii', () => {
+    var circles = [
+      {id: 1, x:10, y:20, radius:10},
+      {id: 2, x:20, y:20, radius:10},
+      {id: 3, x:15, y:30, radius:10},
+    ];
 
+    var points = [
+      {x:15, y:28.66, parentCircles:[1,2]},
+      // {x:15, y:11.3397, parentCircles:[1,2]},
+      {x:10.084, y:21.292, parentCircles:[2,3]},
+      // {x:24.916, y:28.708, parentCircles:[2,3]},
+      // {x:5.084, y:28.708, parentCircles:[1,3]},
+      {x:19.916, y:21.292, parentCircles:[1,3]},
+    ];
+
+    // Arcs take in these arguments:
+    // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+    var expected = [
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:10.084, y:21.292}, //top to left, on circle 2
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.916, y:21.292}, // left to right, on circle 3
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:15, y:28.66}, // right to top, on circle 1
+    ];
+
+    expect(genArcs(points, circles)).toEqual(expected);
+  });
+
+  xit('more than two points, different radii', () => {
+    var circles = [
+      {id: 1, x:10, y:20, radius:10},
+      {id: 2, x:20, y:20, radius:8},
+      {id: 3, x:15, y:30, radius:7},
+    ];
+
+    var points = [
+      {x:16.8, y:27.3321, parentCircles:[1,2]},
+      {x:13.2325, y:24.2662, parentCircles:[2,3]},
+      {x:18.5598, y:25.701, parentCircles:[1,3]},
+    ];
+
+    // Arcs take in these arguments:
+    // A rx ry xAxisRotation largeArcFlag sweepFlag x y
+    var expected = [
+      { rx:8, ry:8, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:10.084, y:21.292}, //top to left, on circle 2
+      { rx:7, ry:7, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.916, y:21.292}, // left to right, on circle 3
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:15, y:28.66}, // right to top, on circle 1
+    ];
+
+    expect(genArcs(points, circles)).toEqual(expected);
+    
+  });
+
+  xit('two points', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:150, y:200, radius:50},
+    ];
+
+    var points  = [
+      {x:125, y:156.699, parentCircles:[1,2]},
+      {x:125, y:243.301, parentCircles:[1,2]},
+    ];
+
+    var expected = [
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:156.699}, //top to left, on circle 2
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:243.301} // left to right, on circle 3
+    ];
+
+    expect(genArcs(points, circles)).toEqual(expected);
+
+  });
+
+  xit('one point', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:200, y:200, radius:50},
+    ];
+
+    var points  = [
+      {x:150, y:200, parentCircles:[1,2]},
+    ];
+
+    expect(genArcs(points, circles)).toEqual([]);
+  });
+
+  xit('no points', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:400, y:200, radius:50},
+    ];
+
+    expect(() => {genArcs([], circles)}).toEqual([]);
+  });
+
+  
 });
 
 describe('getCentroid() finds the midpoint of...', () => {
