@@ -315,11 +315,72 @@ export function pointsWithinCircles(points, circles){
   });
 }
 
+
+
+/*
+ * @param circles - list of circles that are 'clicked' from UI
+ */
+export function constructIntersectionPath(circles) {
+  var points = getAllIntersections(circles);
+
+  console.log('points:');
+  console.log(points);
+  if (points.length < 2) {
+    // Then nothing to draw...
+    // TODO Come up with a better return value then 'undefined'
+    return;
+  }
+
+  var origin = getCentroid(points);
+  var sortedPoints = points.sort((a,b) => {
+
+    var angle_A = computeAngle(a, origin);
+    var angle_B = computeAngle(b, origin);
+
+    if (angle_A < angle_B) {
+      return -1; 
+    }
+    if (angle_A > angle_B) {
+      return 1;
+    }
+    return 0;
+  });
+
+  // Round off points?
+
+  // Construct Path string
+  var coveredPoints = pointsWithinCircles(sortedPoints, circles);
+  console.log('coveredPoints:');
+  console.log(coveredPoints);
+
+  var start = "M" + coveredPoints[0].x.toString() + " " + coveredPoints[0].y.toString();
+  console.log(start);
+  var arcs = genArcs(coveredPoints, circles);
+  console.log('arcs:');
+  console.log(arcs);
+  var arcString = genArcString(arcs);
+  console.log('arcstring:');
+  console.log(arcString);
+
+  return start + arcString + ' Z';
+}
+
+function genArcString(arcs) {
+  return arcs.reduce((memo, arc) => {
+    return memo + " A " + arc.rx.toString() + " " + 
+     arc.ry.toString() + ", " +
+     arc.xAxisRotation.toString() + ", " + 
+     arc.largeArcFlag.toString() + ", " +
+     arc.sweepFlag.toString() + ", " +
+     arc.x.toString() + " " + arc.y.toString(); 
+  }, '');
+}
+
 // Generate paths to draw arcs
 //
 // NOTE: if Math.atan2(dy, dx) < 0, add 2*Math.PI
 /*
- * @param {Array} points - list of points representing an intersection area.
+ * @param {Array} points - list of points representing an intersection area. Points are ordered by degrees in respect to midpoint (centroid). Degree 0 starts on positive x-axis, and increases as we go counterclockwise. 
  * @param {Array} circles - list of all circles.
  * @returns {Array} list of Objects with data for drawing an Arc.
  */
@@ -328,15 +389,100 @@ export function genArcs(points, circles){
   // in counterclockwise direction from angle 0 to 360 from center, create arc for each pair of points 
   // return list of arcs
 
-  points.map(function(point) {
-    var origin = getCentroid(points);
-    var dx = point.x - origin.x;
-    var dy = point.y - origin.y;
+  if (points.length <= 1) {
+    return [];
+  }
+
+  if (points.length === 2) {
+    // TODO handle this case:
+    // gen arc for with values from parentCircles[0] and parentCircles[1]
+    // NOTE:parentCircles should be same for both points
+
+    if (!isEqual(points[0].parentCircles, points[1].parentCircles)) {
+      throw Error('Both points should have same parentCircles');
+    }
+
+    let pCircles = points[0].parentCircles;
+
+    let circleA = circles.filter((c) => {return c.id === pCircles[0]}).shift();
+    let circleB = circles.filter((c) => {return c.id === pCircles[1]}).shift();
+    
+    //NOTE:
+    //hardcode sweepFlag to 1 for now.
+    //for simple intersection case, arcs go counterclockwise
+    return [
+      {
+        rx: circleB.radius,
+        ry: circleB.radius,
+        xAxisRotation: 0,
+        largeArcFlag: 0,
+        sweepFlag: 1,
+        x: points[1].x,
+        y: points[1].y
+      },
+      {
+        rx: circleA.radius,
+        ry: circleA.radius,
+        xAxisRotation: 0,
+        largeArcFlag: 0,
+        sweepFlag: 1,
+        x: points[0].x,
+        y: points[0].y
+      },
+    ];
+  }  
 
 
+
+  var result = [];
+
+  // generate arcs between each point; x_1..x_n
+  for (let i = 0, len = points.length; i < len; i++) {
+    // get common circle between i and i+1
+    let a = points[i];
+    // generate arc for last point to first point; x_n -> x_1
+    let b = (i === (len - 1)) ? points[0] : points[i+1];
+    // if (i === (len-1)) {
+    //   console.log(a);
+    //   console.log(b);
+    // }
+
+    let circleIDs = arrayIntersection(a.parentCircles, b.parentCircles);
+    if (circleIDs.length === 2) {
+      console.log(circleIDs);
+    }
+
+    let circle = circles.filter((n) => {
+      return n.id === circleIDs[0];
+    }).shift();
+
+    result.push({
+      rx: circle.radius,
+      ry: circle.radius,
+      xAxisRotation: 0,
+      largeArcFlag: 0,
+      sweepFlag: 1,
+      x: b.x,
+      y: b.y
+    });
+  }
+
+  return result;
+}
+
+// Takes two arrays, returns an array of intersections
+function arrayIntersection(a,b) {
+  return a.filter((n) => {
+    return (b.indexOf(n) !== -1);
   });
+}
 
-  Math.atan2();
+function computeAngle(point, origin) {
+  var angle = Math.atan2(point.y - origin.y, point.x - origin.x);
+  if (angle < 0) {
+    angle += (2 * Math.PI);
+  }
+  return angle;
 }
 
 /*
@@ -350,15 +496,15 @@ export function getCentroid(points) {
   if (points.length === 0) {
     return null; 
   }
-  var centroid = points.reduce((memo, point) => {
+  var sum = points.reduce((memo, point) => {
     memo.x += point.x;
     memo.y += point.y;
     return memo;
-  });
+  }, {x:0, y:0});
 
-  centroid.x = centroid.x / points.length;
-  centroid.y = centroid.y / points.length;
-  return centroid;
+  sum.x = sum.x / points.length;
+  sum.y = sum.y / points.length;
+  return sum;
 }
 
 

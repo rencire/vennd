@@ -1,7 +1,11 @@
 'use strict';
 // jshint ignore: start
 
-import {getAllIntersections, getIntersections, isInCircle, pointsWithinCircles, getCentroid} from './circle';
+jasmine.pp = function(obj) {
+  return JSON.stringify(obj, undefined, 2);
+};
+
+import {getAllIntersections, getIntersections, isInCircle, pointsWithinCircles, getCentroid, genArcs, constructIntersectionPath} from './circle';
 
 // NOTE: Test data generated from Wolfram Alpha.
 // e.g; http://www.wolframalpha.com/input/?i=%28x-10%29^2+%2B+%28y-10%29^2+%3D+25%2C+%28x-2%29^2+%2B+%28y-13%29^2+%3D+16%2C+
@@ -456,7 +460,8 @@ describe('pointsWithinCircles() returns correct list of points covered by all ci
 
 
 describe('genArcs() should return arcs for the given input...', () => {
-  xit('more than two points, same radii', () => {
+  // Happy
+  it('more than two points, same radii', () => {
     var circles = [
       {id: 1, x:10, y:20, radius:10},
       {id: 2, x:20, y:20, radius:10},
@@ -464,12 +469,9 @@ describe('genArcs() should return arcs for the given input...', () => {
     ];
 
     var points = [
-      {x:15, y:28.66, parentCircles:[1,2]},
-      // {x:15, y:11.3397, parentCircles:[1,2]},
-      {x:10.084, y:21.292, parentCircles:[2,3]},
-      // {x:24.916, y:28.708, parentCircles:[2,3]},
-      // {x:5.084, y:28.708, parentCircles:[1,3]},
-      {x:19.916, y:21.292, parentCircles:[1,3]},
+      {x:15, y:28.66, parentCircles:[1,2]}, // top 
+      {x:10.084, y:21.292, parentCircles:[2,3]},// left
+      {x:19.916, y:21.292, parentCircles:[1,3]},// right
     ];
 
     // Arcs take in these arguments:
@@ -483,7 +485,7 @@ describe('genArcs() should return arcs for the given input...', () => {
     expect(genArcs(points, circles)).toEqual(expected);
   });
 
-  xit('more than two points, different radii', () => {
+  it('more than two points, different radii', () => {
     var circles = [
       {id: 1, x:10, y:20, radius:10},
       {id: 2, x:20, y:20, radius:8},
@@ -492,43 +494,64 @@ describe('genArcs() should return arcs for the given input...', () => {
 
     var points = [
       {x:16.8, y:27.3321, parentCircles:[1,2]},
-      {x:13.2325, y:24.2662, parentCircles:[2,3]},
-      {x:18.5598, y:25.701, parentCircles:[1,3]},
+      {x:12.7458, y:23.3729, parentCircles:[2,3]},
+      {x:19.0371, y:24.2814, parentCircles:[1,3]},
     ];
 
     // Arcs take in these arguments:
     // A rx ry xAxisRotation largeArcFlag sweepFlag x y
     var expected = [
-      { rx:8, ry:8, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:10.084, y:21.292}, //top to left, on circle 2
-      { rx:7, ry:7, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.916, y:21.292}, // left to right, on circle 3
-      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:15, y:28.66}, // right to top, on circle 1
+      { rx:8, ry:8, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:12.7458, y:23.3729}, //top to left, on circle 2
+      { rx:7, ry:7, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.0371, y:24.2814}, // left to right, on circle 3
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:16.8, y:27.3321}, // right to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
-    
   });
 
-  xit('two points', () => {
+  it('two points', () => {
     var circles = [
       {id: 1, x:100, y:200, radius:50},
       {id: 2, x:150, y:200, radius:50},
     ];
 
     var points  = [
-      {x:125, y:156.699, parentCircles:[1,2]},
       {x:125, y:243.301, parentCircles:[1,2]},
+      {x:125, y:156.699, parentCircles:[1,2]},
     ];
 
     var expected = [
-      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:156.699}, //top to left, on circle 2
-      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:243.301} // left to right, on circle 3
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:156.699}, //top to bottom, on circle 2
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:243.301} // bottom to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
 
   });
 
-  xit('one point', () => {
+  it('two points, diff radius', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:150, y:200, radius:40},
+    ];
+
+    var points  = [
+      {x:134, y:236.661, parentCircles:[1,2]},
+      {x:134, y:163.339, parentCircles:[1,2]},
+    ];
+
+    var expected = [
+      { rx:40, ry:40, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:134, y:163.339}, //top to bottom, on circle 2
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:134, y:236.661} // bottom to top, on circle 1
+    ];
+
+    expect(genArcs(points, circles)).toEqual(expected);
+
+  });
+
+
+  // Sad
+  it('one point', () => {
     var circles = [
       {id: 1, x:100, y:200, radius:50},
       {id: 2, x:200, y:200, radius:50},
@@ -541,15 +564,31 @@ describe('genArcs() should return arcs for the given input...', () => {
     expect(genArcs(points, circles)).toEqual([]);
   });
 
-  xit('no points', () => {
+  it('no points', () => {
     var circles = [
       {id: 1, x:100, y:200, radius:50},
       {id: 2, x:400, y:200, radius:50},
     ];
 
-    expect(() => {genArcs([], circles)}).toEqual([]);
+    expect(genArcs([], circles)).toEqual([]);
   });
 
+
+  // Bad
+  it('two points, not representing an intersection area.', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:150, y:200, radius:40},
+    ];
+
+    var points  = [
+      {x:134, y:236.661, parentCircles:[1,2]},
+      {x:134, y:500, parentCircles:[2,3]},
+    ];
+
+    expect(() => {genArcs(points, circles)}).toThrowError('Both points should have same parentCircles');
+
+  });
   
 });
 
@@ -607,5 +646,24 @@ describe('getCentroid() finds the midpoint of...', () => {
 
   it('no points', () => {
     expect(getCentroid([])).toEqual(null);
+  });
+});
+
+
+// TODO finish this
+describe('constructIntersectionPath', () => {
+  it('test', () => {
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:150, y:200, radius:40},
+    ];
+
+    var circles = [
+      {id: 1, x:100, y:200, radius:50},
+      {id: 2, x:150, y:200, radius:50},
+      {id: 3, x:125, y:250, radius:50},
+    ];
+
+    console.log(constructIntersectionPath(circles));
   });
 });
