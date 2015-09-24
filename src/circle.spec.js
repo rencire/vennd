@@ -477,9 +477,9 @@ describe('genArcs() should return arcs for the given input...', () => {
     // Arcs take in these arguments:
     // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
     var expected = [
-      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:10.084, y:21.292}, //top to left, on circle 2
-      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.916, y:21.292}, // left to right, on circle 3
-      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:15, y:28.66}, // right to top, on circle 1
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:10.084, y:21.292}, //top to left, on circle 2
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:19.916, y:21.292}, // left to right, on circle 3
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:15, y:28.66}, // right to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
@@ -501,9 +501,9 @@ describe('genArcs() should return arcs for the given input...', () => {
     // Arcs take in these arguments:
     // A rx ry xAxisRotation largeArcFlag sweepFlag x y
     var expected = [
-      { rx:8, ry:8, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:12.7458, y:23.3729}, //top to left, on circle 2
-      { rx:7, ry:7, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:19.0371, y:24.2814}, // left to right, on circle 3
-      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:16.8, y:27.3321}, // right to top, on circle 1
+      { rx:8, ry:8, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:12.7458, y:23.3729}, //top to left, on circle 2
+      { rx:7, ry:7, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:19.0371, y:24.2814}, // left to right, on circle 3
+      { rx:10, ry:10, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:16.8, y:27.3321}, // right to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
@@ -521,8 +521,8 @@ describe('genArcs() should return arcs for the given input...', () => {
     ];
 
     var expected = [
-      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:156.699}, //top to bottom, on circle 2
-      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:125, y:243.301} // bottom to top, on circle 1
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:125, y:156.699}, //top to bottom, on circle 2
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:125, y:243.301} // bottom to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
@@ -541,8 +541,8 @@ describe('genArcs() should return arcs for the given input...', () => {
     ];
 
     var expected = [
-      { rx:40, ry:40, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:134, y:163.339}, //top to bottom, on circle 2
-      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:0, x:134, y:236.661} // bottom to top, on circle 1
+      { rx:40, ry:40, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:134, y:163.339}, //top to bottom, on circle 2
+      { rx:50, ry:50, xAxisRotation:0, largeArcFlag:0, sweepFlag:1, x:134, y:236.661} // bottom to top, on circle 1
     ];
 
     expect(genArcs(points, circles)).toEqual(expected);
