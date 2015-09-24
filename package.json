@@ -3,6 +3,7 @@
   "main": "dist/module.js",
   "devDependencies": {
     "babelify": "^6.1.0",
+    "browser-sync": "^2.9.6",
     "grunt": "^0.4.5",
     "grunt-browserify": "^3.8.0",
     "grunt-contrib-watch": "^0.6.1",
@@ -17,11 +18,15 @@
     "phantomjs": "^1.9.18"
   },
   "scripts": {
-    "test": "karma start karma.conf.js"
+    "test": "karma start karma.conf.js",
+    "serveit": "browser-sync start --files 'src/**/*.html,src/**/*.css,src/**/*.js' --server 'src'"
   },
   "jspm": {
     "directories": {
       "baseURL": "src"
+    },
+    "dependencies": {
+      "d3": "github:mbostock/d3@^3.5.6"
     },
     "devDependencies": {
       "babel": "npm:babel-core@^5.1.13",

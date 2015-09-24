@@ -1,6 +1,6 @@
 'use strict';
 
-import {isEqual} from 'helpers';
+import {isEqual} from './helpers';
 
 /*
  * @see {@link http://stackoverflow.com/a/18358056/849172 | Mark G's answer} for correct implementation of rounding floating points.  

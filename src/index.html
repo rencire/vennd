@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width">
     <title>vennd</title>
     <link rel="stylesheet" href="css/main.css" type="text/css" media="all" />
-    <script src="js/d3.js" charset="utf-8"></script>
 
+    <script src="jspm_packages/system.js"></script>
+    <script src="config.js"></script>
+    <script>
+      System.import('lib/main');
+    </script>
   </head>
   <body>
     <div class="dragzone">
@@ -24,7 +28,5 @@
         <textarea class="file-content sel-file-content" readonly=true autocomplete="off"></textarea>
       </section>
     </div>
-    <script src="src/circle.js" charset="utf-8"></script>
-    <script src="dist/main.js" charset="utf-8"></script>
   </body>
 </html>
