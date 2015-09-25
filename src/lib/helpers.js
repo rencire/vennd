@@ -68,4 +68,23 @@ function isEqual(a,b) {
 // console.log(isEqual({a:{b:2, c:3}},{a:{b:2, c:4}}));
 // // false
 
-export { addEvent, getRandomInt, debounce, isEqual};
+
+// find intersection of sorted arrays
+function intersectArrays(a,b) {
+  var result = [];
+  var i = 0;
+  var j = 0;
+  while (i < a.length && j < b.length) {
+    if(a[i] < b[j]) {
+      i = i + 1;
+    } else if(a[i] > b[j]) {
+      j = j + 1;
+    } else {
+      result.push(a[i]);
+      i = i + 1;
+      j = j + 1;
+    }
+  }
+  return result;
+}
+export { addEvent, getRandomInt, debounce, isEqual, intersectArrays};

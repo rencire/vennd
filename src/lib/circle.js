@@ -2,6 +2,9 @@
 
 import {isEqual} from './helpers';
 
+
+
+
 /*
  * @see {@link http://stackoverflow.com/a/18358056/849172 | Mark G's answer} for correct implementation of rounding floating points.  
  * Also look into 'dedekind cut'.  In JS, 1.0049999999999999 and 1.005 are considered the same number. So both will round to 1.01 for two decimal places.
@@ -79,6 +82,53 @@ function isPoint(point) {
     typeof point.y === 'number' &&
     Array.isArray(point.parentCircles); 
 }
+
+// Overlaps
+
+/**
+ * A list of overlapping circles
+ *
+ * Note: using this equation to determine if two circles are intersecting or not:
+ *
+ *   (R0-R1)^2 <= (x0-x1)^2+(y0-y1)^2 <= (R0+R1)^2
+ * 
+ * See {@link http://stackoverflow.com/questions/8367512/algorithm-to-detect-if-a-circles-intersect-with-any-other-circle-in-the-same-pla}
+ * for details on equation.
+ *
+ * @param {object} circle - Circle we are finding overlaps for
+ * @param {array} circles - list of all circles
+ * @returns {array} Array of circles that visually overlap with param 'circle' on drawboard
+ *
+ */
+export function getOverlaps(circle, circles) {
+  return circles.filter(function(c) {
+    if (c.id === circle.id) {
+      return false;
+    }
+    var mid = Math.pow(circle.x - c.x, 2) + Math.pow(circle.y - c.y, 2);
+    var low = Math.pow(circle.radius - c.radius, 2);
+    var high = Math.pow(circle.radius + c.radius, 2);
+    return low <= mid && mid <= high;
+  });
+}
+
+/**
+ * Returns an array of circles that overlap with clicked coordinates
+ * @param {array} point - X/Y coordinates of clicked circle on drawboard
+ * @param {array} overlaps - Array of circles that overlap with the clicked circle
+ * @returns {array} Array of circles that overlap with the param 'point' 
+ */
+export function getClickedOverlaps(point,overlaps) {
+  return overlaps.filter(function(c) {
+    var xDiff = point[0] - c.x;
+    var yDiff = point[1] - c.y;
+    return (Math.pow(xDiff, 2) + Math.pow(yDiff, 2)) < Math.pow(c.radius, 2);
+  });
+}
+
+
+
+// Intersections
 
 // circles = [
 //   {id: 3, x:23, y:22, radius: 50, selected: false, fileContent: e.target.result};

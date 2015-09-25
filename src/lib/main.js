@@ -1,6 +1,7 @@
 import 'd3';
-import { addEvent, getRandomInt, debounce } from './helpers';
-import { constructIntersectionPath } from './circle';
+import { addEvent, getRandomInt, debounce, intersectArrays } from './helpers';
+import { splitToWords } from './files';
+import { constructIntersectionPath, getOverlaps, getClickedOverlaps } from './circle';
 
 
 
@@ -13,7 +14,7 @@ var settings = {
     radius: 100,
     width: undefined,
     height: undefined,
-    id_cnt: 0,
+    id_cnt: 2,
     file_id_cnt:  0,
 };
 
@@ -42,7 +43,7 @@ function initializePage() {
 
     // bind error msg click
     views.dragzone.addEventListener('click', function(e) {
-      updateCtrMsg(false);
+      renderCtrMsg(false);
     }, false);
 
     // make text uneditable
@@ -54,13 +55,17 @@ function initializePage() {
 
 // State
 
-var circles = [];
+
+var circles = [
+  {id: 0, x: 200, y: 200, radius: settings.radius, selected: false, fileContent: null},
+  {id: 1, x: 400, y: 300, radius: settings.radius, selected: false, fileContent: null}
+];
 
 var state = {};
 
 state.intersectionArea = {
   display: false,
-}
+};
 
 
 // State functions
@@ -104,81 +109,6 @@ function renderBoard() {
     circle.exit().remove();
 }
 
-/**
- * A list of overlapping circles
- *
- * Note: using this equation to determine if two circles are intersecting or not:
- *
- *   (R0-R1)^2 <= (x0-x1)^2+(y0-y1)^2 <= (R0+R1)^2
- * 
- * See {@link http://stackoverflow.com/questions/8367512/algorithm-to-detect-if-a-circles-intersect-with-any-other-circle-in-the-same-pla}
- * for details on equation.
- *
- * @param {object} circle - Circle we are finding overlaps for
- * @returns {array} Array of circles that visually overlap with param 'circle' on drawboard
- *
- */
-function getOverlaps(circle) {
-  return circles.filter(function(c) {
-    if (c.id === circle.id) {
-      return false;
-    }
-    var mid = Math.pow(circle.x - c.x, 2) + Math.pow(circle.y - c.y, 2);
-    var low = Math.pow(circle.radius - c.radius, 2);
-    var high = Math.pow(circle.radius + c.radius, 2);
-    return low <= mid && mid <= high;
-  });
-}
-
-/**
- * Returns an array of circles that overlap with clicked coordinates
- * @param {array} point - X/Y coordinates of clicked circle on drawboard
- * @param {array} overlaps - Array of circles that overlap with the clicked circle
- * @returns {array} Array of circles that overlap with the param 'point' 
- */
-function getClickedOverlaps(point,overlaps) {
-  return overlaps.filter(function(c) {
-    var xDiff = point[0] - c.x;
-    var yDiff = point[1] - c.y;
-    return (Math.pow(xDiff, 2) + Math.pow(yDiff, 2)) < Math.pow(c.radius, 2);
-  });
-}
-
-// NOTE: Default element we are calculating are for words
-
-/**
- * String result from performing Set Difference between text and each. 
- * Treating a word as a set element.
- * @param {string} - text - String we will diff from.
- * @param {array} - others - Array of strings that we want to diff against param 'text'
- * @returns {string} String result of text - (others[0] + others[1] + ...)
- */
-//TODO once es6 is supported on browser, use Set object
-
-function splitToWords(text, others) {
-  var wordsSet = {};
-  var words = text.split(/\s+/);
-  words.forEach(function(word) {
-    if(!Object.prototype.hasOwnProperty.call(wordsSet, word)) {
-      wordsSet[word] = true;
-    }
-  });
-
-  var otherWordsSet = {};
-  others.forEach(function(str) {
-    var words = str.split(/\s+/);
-    words.forEach(function(word) {
-      if(!Object.prototype.hasOwnProperty.call(otherWordsSet, word)) {
-        otherWordsSet[word] = true;
-      }
-    });
-  });
-
-  return {
-    theseWords:  Object.keys(wordsSet),
-    otherWords:  Object.keys(otherWordsSet)
-  };
-}
 
 function calcDifference(text, others) {
   var wordSets = splitToWords(text, others);
@@ -205,24 +135,6 @@ function calcDifference(text, others) {
 
 }
 
-// find intersection of sorted arrays
-function intersectArrays(a,b) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-  while (i < a.length && j < b.length) {
-    if(a[i] < b[j]) {
-      i = i + 1;
-    } else if(a[i] > b[j]) {
-      j = j + 1;
-    } else {
-      result.push(a[i]);
-      i = i + 1;
-      j = j + 1;
-    }
-  }
-  return result;
-}
 // calculate the intersection of list of files
 // Using an object as a Set
 // TODO refactor this, code smells like duplication of #calcDifference
@@ -246,10 +158,10 @@ function handleCircleClick(circle) {
   var point = d3.mouse(this);
     
   console.log(circle);
-  var overlaps = getOverlaps(circle);
+  var overlaps = getOverlaps(circle, circles);
   if (overlaps.length === 0) {
     displayResult(circle.fileContent);    
-    console.log('all content');
+    console.debug('all content');
     return;
   }
   
@@ -261,20 +173,18 @@ function handleCircleClick(circle) {
     result = calcDifference(circle.fileContent, overlapsFiles);
     console.log('calc diff');
   } else {
-    var clickedOverlapsFiles = clickedOverlaps.map(function(ele){return ele.fileContent;});
-    result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
-    console.log('calc intersect');
-
-    var path = document.querySelector('.intersectArea');
-    path.style.display = 'inline';
-
-
     var clickedCircles = clickedOverlaps.concat([circle]);
 
     state.intersectionArea.display = true;
     state.intersectionArea.clickedCircles = clickedCircles;
 
     renderIntersectionArea(state.intersectionArea);
+    console.log('>>> Render intersection area...');
+    console.log('<<< Done Rendering interseciton area');
+
+    var clickedOverlapsFiles = clickedOverlaps.map(function(ele){return ele.fileContent;});
+    result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
+    console.log('calc intersect');
   }
   displayResult(result);
 }
@@ -412,7 +322,7 @@ function clearBoard() {
 }
 
 // Render/update fn's
-function updateCtrMsg(msg) {
+function renderCtrMsg(msg) {
   if (msg === false) {
     views.ctr_msg.textContent = views.ctr_msg.style.display = '';
   } else if (typeof msg === 'string') {
@@ -420,6 +330,7 @@ function updateCtrMsg(msg) {
     views.ctr_msg.textContent = msg;
   }
 }
+
 
 
 // Files
@@ -430,11 +341,11 @@ function handleFiles(files) {
         var imageType = /^text\//;
 
         if (!imageType.test(file.type)) {
-            updateCtrMsg('File type needs to be Text');
+            renderCtrMsg('File type needs to be Text');
             continue;
         }
         addCircle(file);
-        updateCtrMsg(false);
+        renderCtrMsg(false);
     }
 }
 
@@ -452,7 +363,7 @@ function handleDragzoneEnter(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:enter');
-    updateCtrMsg('Drop your files to visualize!');
+    renderCtrMsg('Drop your files to visualize!');
 }
 
 function handleDragover(e) {
@@ -466,7 +377,7 @@ function handleDragzoneLeave(e) {
     e.stopPropagation();
     e.preventDefault();
     console.log('dragzone:leave');
-    updateCtrMsg(false);
+    renderCtrMsg(false);
 }
 
 
@@ -491,7 +402,7 @@ dragzone_ele.addEventListener("drop", function(e) {
     if(containsFiles(e)) {
       handleFiles(e.dataTransfer.files);
     } else {
-      updateCtrMsg('Can only drop files');
+      renderCtrMsg('Can only drop files');
     }
 
 }, false);
