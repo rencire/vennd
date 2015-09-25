@@ -56,4 +56,8 @@ dragzone_ele.addEventListener("drop", function(e) {
 
 }, false);
 
+// TODO: check if event contains files
+function containsFiles(e) {
+    return true;
+}
 console.log('loaded hanldeDragzone');

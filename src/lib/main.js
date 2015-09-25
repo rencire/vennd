@@ -2,7 +2,6 @@ import 'd3';
 import { addEvent, getRandomInt, debounce } from './helpers';
 import { constructIntersectionPath } from './circle';
 
-import './handleDragzone';
 
 
 function stopBubbleUp() {
@@ -57,6 +56,12 @@ function initializePage() {
 
 var circles = [];
 
+var state = {};
+
+state.intersectionArea = {
+  display: false,
+}
+
 
 // State functions
 
@@ -67,7 +72,7 @@ function inBounds(point) {
 
 function isFreeArea(point) {
     return circles.every(function(circle) {
-        return (Math.pow((point.x - circle.point.x),2) + Math.pow((point.y - circle.point.y),2)) > Math.pow(settings.radius,2);
+        return (Math.pow((point.x - circle.x),2) + Math.pow((point.y - circle.y),2)) > Math.pow(settings.radius,2);
     });
 }
 
@@ -88,9 +93,9 @@ function renderBoard() {
     // enter
     circle.enter().append('circle')
         .attr("r", settings.radius)
-        .attr("cx", function(d){return d.point.x;})
-        .attr("cy", function(d){return d.point.y;})
-        .classed('selected', function(d){return d.selected;})
+        .attr("cx", function(d){return d.x;})
+        .attr("cy", function(d){return d.y;})
+        .attr('selected', function(d){return d.selected;})
         .on('click', handleCircleClick)
         .on('mousedown', stopBubbleUp)
         .call(dragBehavior);
@@ -118,7 +123,7 @@ function getOverlaps(circle) {
     if (c.id === circle.id) {
       return false;
     }
-    var mid = Math.pow(circle.point.x - c.point.x, 2) + Math.pow(circle.point.y - c.point.y, 2);
+    var mid = Math.pow(circle.x - c.x, 2) + Math.pow(circle.y - c.y, 2);
     var low = Math.pow(circle.radius - c.radius, 2);
     var high = Math.pow(circle.radius + c.radius, 2);
     return low <= mid && mid <= high;
@@ -133,8 +138,8 @@ function getOverlaps(circle) {
  */
 function getClickedOverlaps(point,overlaps) {
   return overlaps.filter(function(c) {
-    var xDiff = point[0] - c.point.x;
-    var yDiff = point[1] - c.point.y;
+    var xDiff = point[0] - c.x;
+    var yDiff = point[1] - c.y;
     return (Math.pow(xDiff, 2) + Math.pow(yDiff, 2)) < Math.pow(c.radius, 2);
   });
 }
@@ -259,8 +264,48 @@ function handleCircleClick(circle) {
     var clickedOverlapsFiles = clickedOverlaps.map(function(ele){return ele.fileContent;});
     result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
     console.log('calc intersect');
+
+    var path = document.querySelector('.intersectArea');
+    path.style.display = 'inline';
+
+
+    var clickedCircles = clickedOverlaps.concat([circle]);
+
+    state.intersectionArea.display = true;
+    state.intersectionArea.clickedCircles = clickedCircles;
+
+    renderIntersectionArea(state.intersectionArea);
   }
   displayResult(result);
+}
+
+function renderIntersectionArea(state) {
+  var pathString = constructIntersectionPath(state.clickedCircles);
+
+  var path = document.querySelector('.intersectArea');
+  path.setAttribute('stroke', 'red');
+  path.setAttribute('stroke-width', '1');
+  path.setAttribute('fill', 'red');
+  path.setAttribute('d', pathString);
+  path.style.display = (state.display) ? 'inline' : 'none';
+}
+
+
+function drawIntersectionArea(circles){
+    // not using views.drawboard, want to move away from using d3
+  // var views.drawboard
+  
+  var svg_ns = "http://www.w3.org/2000/svg";
+  // Consider replacing html in .drawboard instead of appending new element to DOM
+  var path = document.createElementNS(svg_ns, 'path');
+  path.setAttribute('stroke', 'red');
+  path.setAttribute('stroke-width', '1');
+  path.setAttribute('fill', 'red');
+  path.setAttribute('d', constructIntersectionPath(circles));
+
+  var drawboard = document.querySelector('.drawboard');
+  drawboard.appendChild(path);
+  
 }
 
 function displayResult(content) {
@@ -282,14 +327,16 @@ function toggleSelected(d) {
 // TODO get rid of d3 and code a drag solution with vanilla javascript
 function dragmove(d) {
     d3.select(this)
-        .attr("cx", d.point.x = Math.max(0, Math.min(settings.width, d3.event.x)))
-        .attr("cy", d.point.y = Math.max(0, Math.min(settings.height, d3.event.y)));
+        .attr("cx", d.x = Math.max(0, Math.min(settings.width, d3.event.x)))
+        .attr("cy", d.y = Math.max(0, Math.min(settings.height, d3.event.y)));
     renderBoard();
+
+    renderIntersectionArea(state.intersectionArea);
 }
 
 var dragBehavior = d3.behavior.drag()
     .origin(function(d) { 
-        return d.point; 
+        return {x:d.x, y:d.y}; 
     })
     // .on("dragstart", markSelected)
     .on("drag", dragmove);
@@ -316,7 +363,7 @@ function addCircle(file) {
 
         var reader = new FileReader();
         reader.onload = function(e) { 
-          circle = {id: settings.id_cnt, point: point, radius: settings.radius, selected: false, fileContent: e.target.result};
+          circle = {id: settings.id_cnt, x: point.x, y: point.y, radius: settings.radius, selected: false, fileContent: e.target.result};
           circles.push(circle);
           //TODO Q: How to drag a shape after creating it?
           // A: don't implement this feature for now...
@@ -329,13 +376,13 @@ function addCircle(file) {
         //TODO Review this false condition code
         // check if not clicking an area with circle
         var point = d3.mouse(this);
-        circle = {id: settings.id_cnt, point: {x: point[0], y: point[1]}, selected: false, file: file};
+        circle = {id: settings.id_cnt, x: point[0], y: point[1], selected: false, file: file};
 
-        if (!inBounds(circle.point)) {
+        if (!inBounds({x:circle.x, y:circle.y})) {
             console.log('ERROR: circles out of bounds.') ;
             return;
         }
-        if (!isFreeArea(circle.point)) {
+        if (!isFreeArea({x:circle.x, y:circle.y})) {
             // This block will never execute from UI because 'click' event handlers for 'circles' will stopDefaultPropagation for parent 'click' event handlers.
             // Still useful if people are messing with the console to add circles.
             console.log("ERROR: Circle already exists in that spot.");
@@ -391,12 +438,70 @@ function handleFiles(files) {
     }
 }
 
+import {makeDragzone} from './dragzone';
 
+// NOTES:
+// - Currently, HTML5 dragenter and dragleave are similar to mousein and mouseout.
+// - Using a custom event to make dragenter and dragleave behave more like mouseenter and mouseleave.
+// - Custom solution also handles Firefox 38's weird behavior of double firing dragenter event...
+//
+// References:
+// - http://stackoverflow.com/questions/10253663/how-to-detect-the-dragleave-event-in-firefox-when-dragging-outside-the-window/10310815#10310815
+// - http://developers.arcgis.com/javascript/sandbox/sandbox.html?sample=exp_dragdrop
+function handleDragzoneEnter(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('dragzone:enter');
+    updateCtrMsg('Drop your files to visualize!');
+}
+
+function handleDragover(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('dragover');
+    var dt = e.dataTransfer;
+    dt.dropEffect = dt.effectAllowed = 'copy';
+}
+function handleDragzoneLeave(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('dragzone:leave');
+    updateCtrMsg(false);
+}
+
+
+var dragzone_ele = document.querySelector('.dragzone');
+makeDragzone(dragzone_ele);
+
+dragzone_ele.addEventListener("dragzone:enter", handleDragzoneEnter, false);
+
+// change cursor on drag
+dragzone_ele.addEventListener("dragover", handleDragover, false);
+
+dragzone_ele.addEventListener("dragzone:leave", handleDragzoneLeave, false);
+
+// preventDefault uploading behavior when dropping files on dragzone_ele's child elements
+dragzone_ele.addEventListener("drop", function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('drop');
+
+    // add circle to svg
+    console.log(e.dataTransfer);
+    if(containsFiles(e)) {
+      handleFiles(e.dataTransfer.files);
+    } else {
+      updateCtrMsg('Can only drop files');
+    }
+
+}, false);
 
 // TODO: check if event contains files
 function containsFiles(e) {
     return true;
 }
+
+
 
 
 

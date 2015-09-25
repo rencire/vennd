@@ -294,7 +294,10 @@ export function isInCircle(point,circle) {
 
   // Rounding values to avoid edge cases where points have > 2 sig figs
   // Seems brittle, consider just using 3 sig figs for all x,y values in codebase
-  return Math.round((xd*xd + yd*yd), 0) <= Math.round((circle.radius*circle.radius), 0);
+  // Turns out JS is brittle with floating point arithmetic, so lets just take floor of answer to ignore decimal values.
+  var t1 = (xd*xd + yd*yd);
+  var t2 = (circle.radius*circle.radius);
+  return Math.floor(t1) <= Math.floor(t2);
 
 }
 
@@ -399,6 +402,7 @@ export function genArcs(points, circles){
     // NOTE:parentCircles should be same for both points
 
     if (!isEqual(points[0].parentCircles, points[1].parentCircles)) {
+      console.log(points);
       throw Error('Both points should have same parentCircles');
     }
 
