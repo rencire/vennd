@@ -1,8 +1,7 @@
 import 'd3';
-import { addEvent, getRandomInt, debounce, intersectArrays } from './helpers';
-import { splitToWords } from './files';
-import { constructIntersectionPath, getOverlaps, getClickedOverlaps } from './circle';
-
+import { addEvent, debounce } from './helpers';
+import { splitToWords, calcDifference, calcIntersection} from './files';
+import { constructIntersectionPath, getOverlaps, getClickedOverlaps, generateRandomValidPoint, inBounds, isFreeArea } from './circle';
 
 
 function stopBubbleUp() {
@@ -70,22 +69,12 @@ state.intersectionArea = {
 
 // State functions
 
-function inBounds(point) {
-    return point.x >= 0 && point.x <= settings.width && point.y >= 0 && point.y <= settings.height;
-}
 
-
-function isFreeArea(point) {
-    return circles.every(function(circle) {
-        return (Math.pow((point.x - circle.x),2) + Math.pow((point.y - circle.y),2)) > Math.pow(settings.radius,2);
-    });
-}
-
-function renderFiles(){
-    views.files_div.append('div')
-        .attr('class', 'dropbox')
-        .attr('type', 'file');
-}
+// function renderFiles(){
+//     views.files_div.append('div')
+//         .attr('class', 'dropbox')
+//         .attr('type', 'file');
+// }
 
 // TODO break this up into separate operations if needed (update, enter, exit)
 function renderBoard() {
@@ -110,45 +99,24 @@ function renderBoard() {
 }
 
 
-function calcDifference(text, others) {
-  var wordSets = splitToWords(text, others);
+function renderIntersectionArea(state) {
+  var pathString = constructIntersectionPath(state.clickedCircles);
 
-  var sortedWords = wordSets.theseWords.sort();
-  var sortedOtherWords = wordSets.otherWords.sort();
+  var path = document.querySelector('.intersectArea');
+  path.setAttribute('stroke', 'red');
+  path.setAttribute('stroke-width', '1');
+  path.setAttribute('fill', 'red');
+  path.setAttribute('d', pathString);
+  path.style.display = (state.display) ? 'inline' : 'none';
+}
 
-  var result = [];
-  var i = 0;
-  var j = 0;
-  while (i < sortedWords.length && j < sortedOtherWords.length) {
-    if(sortedWords[i] < sortedOtherWords[j]) {
-      result.push(sortedWords[i]);
-      i = i + 1;
-    } else if(sortedWords[i] > sortedOtherWords[j]) {
-      j = j + 1;
-    } else {
-      i = i + 1;
-      j = j + 1;
-    }
-  }
-
-  return result.concat(sortedWords.slice(i)).join("\n");
-
+function renderFileResult(content) {
+  views.sel_file_content.value = content;
 }
 
 // calculate the intersection of list of files
 // Using an object as a Set
 // TODO refactor this, code smells like duplication of #calcDifference
-function calcIntersection(fileList) {
-  var allWords = fileList.map(function(file) {
-    return file.split(/\s+/).sort();
-  });
-
-  var result = allWords.reduce(function(memo, words) {
-    return intersectArrays(memo, words);
-  });
-
-  return result.join("\n");
-}
 
 /**
  * Calculates and displays set operation on circle(s)
@@ -160,7 +128,7 @@ function handleCircleClick(circle) {
   console.log(circle);
   var overlaps = getOverlaps(circle, circles);
   if (overlaps.length === 0) {
-    displayResult(circle.fileContent);    
+    renderFileResult(circle.fileContent);    
     console.debug('all content');
     return;
   }
@@ -186,41 +154,28 @@ function handleCircleClick(circle) {
     result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
     console.log('calc intersect');
   }
-  displayResult(result);
-}
-
-function renderIntersectionArea(state) {
-  var pathString = constructIntersectionPath(state.clickedCircles);
-
-  var path = document.querySelector('.intersectArea');
-  path.setAttribute('stroke', 'red');
-  path.setAttribute('stroke-width', '1');
-  path.setAttribute('fill', 'red');
-  path.setAttribute('d', pathString);
-  path.style.display = (state.display) ? 'inline' : 'none';
+  renderFileResult(result);
 }
 
 
-function drawIntersectionArea(circles){
-    // not using views.drawboard, want to move away from using d3
-  // var views.drawboard
-  
-  var svg_ns = "http://www.w3.org/2000/svg";
-  // Consider replacing html in .drawboard instead of appending new element to DOM
-  var path = document.createElementNS(svg_ns, 'path');
-  path.setAttribute('stroke', 'red');
-  path.setAttribute('stroke-width', '1');
-  path.setAttribute('fill', 'red');
-  path.setAttribute('d', constructIntersectionPath(circles));
 
-  var drawboard = document.querySelector('.drawboard');
-  drawboard.appendChild(path);
-  
-}
+// function drawIntersectionArea(circles){
+//     // not using views.drawboard, want to move away from using d3
+//   // var views.drawboard
+//   
+//   var svg_ns = "http://www.w3.org/2000/svg";
+//   // Consider replacing html in .drawboard instead of appending new element to DOM
+//   var path = document.createElementNS(svg_ns, 'path');
+//   path.setAttribute('stroke', 'red');
+//   path.setAttribute('stroke-width', '1');
+//   path.setAttribute('fill', 'red');
+//   path.setAttribute('d', constructIntersectionPath(circles));
+//
+//   var drawboard = document.querySelector('.drawboard');
+//   drawboard.appendChild(path);
+//   
+// }
 
-function displayResult(content) {
-  views.sel_file_content.value = content;
-}
 
 function toggleSelected(d) {
     if (d3.event.defaultPrevented) return; // click suppressed by drag behavior
@@ -228,7 +183,7 @@ function toggleSelected(d) {
     d3.select(this)
         .classed('selected', d.selected = !d.selected);
     if (d.selected && d.fileContent !== undefined) {
-        displayResult(d.fileContent);    
+        renderFileResult(d.fileContent);    
     } else {
         views.sel_file_content.value = '';
     }
@@ -256,20 +211,12 @@ var dragBehavior = d3.behavior.drag()
 
 
 
-function generateRandomValidPoint() {
-    var point = {x: getRandomInt(0, settings.width), y: getRandomInt(0, settings.height)};
-    while(!isFreeArea(point)) {
-        point = {x: getRandomInt(0, settings.width), y: getRandomInt(0, settings.height)};
-    }
-    return point;
-}
-
 function addCircle(file) {
     var coord;
     var circle;
     if (file) {
         // generate random coords
-        var point = generateRandomValidPoint();
+        var point = generateRandomValidPoint(settings.width, settings.height, circles);
 
         var reader = new FileReader();
         reader.onload = function(e) { 
@@ -285,14 +232,15 @@ function addCircle(file) {
     } else {
         //TODO Review this false condition code
         // check if not clicking an area with circle
+      console.log('in else');
         var point = d3.mouse(this);
         circle = {id: settings.id_cnt, x: point[0], y: point[1], selected: false, file: file};
 
-        if (!inBounds({x:circle.x, y:circle.y})) {
+        if (!inBounds({x:circle.x, y:circle.y}, settings.width, settings.height)) {
             console.log('ERROR: circles out of bounds.') ;
             return;
         }
-        if (!isFreeArea({x:circle.x, y:circle.y})) {
+        if (!isFreeArea({x:circle.x, y:circle.y}, circles)) {
             // This block will never execute from UI because 'click' event handlers for 'circles' will stopDefaultPropagation for parent 'click' event handlers.
             // Still useful if people are messing with the console to add circles.
             console.log("ERROR: Circle already exists in that spot.");
@@ -300,6 +248,9 @@ function addCircle(file) {
         }
 
         circles.push(circle);
+          console.log(
+            'after no file push'
+          );
         //TODO Q: How to drag a shape after creating it?
         // A: don't implement this feature for now...
         settings.id_cnt += 1;
@@ -345,6 +296,9 @@ function handleFiles(files) {
             continue;
         }
         addCircle(file);
+          console.log(
+            'hi'
+          );
         renderCtrMsg(false);
     }
 }

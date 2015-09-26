@@ -1,6 +1,6 @@
 'use strict';
 
-import {isEqual} from './helpers';
+import {getRandomInt, isEqual} from './helpers';
 
 
 
@@ -60,6 +60,17 @@ import {isEqual} from './helpers';
   }
 })();
 
+function inBounds(point, maxWidth, maxHeight) {
+    return point.x >= 0 && point.x <= maxWidth && point.y >= 0 && point.y <= maxHeight;
+}
+
+
+function isFreeArea(point, circles) {
+    return circles.every(function(circle) {
+        return (Math.pow((point.x - circle.x),2) + Math.pow((point.y - circle.y),2)) > Math.pow(circle.radius,2);
+    });
+}
+
 function isCircle(circle) {
   // cannot be undefined or null, or any falsy value
   if (!circle) {
@@ -82,6 +93,15 @@ function isPoint(point) {
     typeof point.y === 'number' &&
     Array.isArray(point.parentCircles); 
 }
+
+export function generateRandomValidPoint(maxWidth, maxHeight, circles) {
+    var point = {x: getRandomInt(0, maxWidth), y: getRandomInt(0, maxHeight)};
+    while(!isFreeArea(point, circles)) {
+        point = {x: getRandomInt(0, maxWidth), y: getRandomInt(0, maxHeight)};
+    }
+    return point;
+}
+
 
 // Overlaps
 
