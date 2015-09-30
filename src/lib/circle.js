@@ -359,6 +359,7 @@ export function isInCircle(point,circle) {
   }
 
 
+  var errorMargin = 3;
   var xd = point.x - circle.x;
   var yd = point.y - circle.y;
 
@@ -367,7 +368,8 @@ export function isInCircle(point,circle) {
   // Turns out JS is brittle with floating point arithmetic, so lets just take floor of answer to ignore decimal values.
   var t1 = (xd*xd + yd*yd);
   var t2 = (circle.radius*circle.radius);
-  return Math.floor(t1) <= Math.floor(t2);
+  return (Math.floor(t1) <= (Math.floor(t2) + errorMargin)) || 
+    (Math.floor(t1) <= (Math.floor(t2) - errorMargin)); 
 
 }
 
@@ -400,8 +402,8 @@ export function constructIntersectionPath(circles) {
   console.log(points);
   if (points.length < 2) {
     // Then nothing to draw...
-    // TODO Come up with a better return value then 'undefined'
-    return;
+    // TODO Come up with a better return value then ''
+    return "";
   }
 
   var origin = getCentroid(points);

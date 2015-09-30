@@ -53,17 +53,56 @@ function initializePage() {
 }
 
 // State
-
-
 var circles = [
   {id: 0, x: 200, y: 200, radius: settings.radius, selected: false, fileContent: null},
   {id: 1, x: 400, y: 300, radius: settings.radius, selected: false, fileContent: null}
 ];
 
+// Init load file for testing
+var httpRequest;
+
+function addFileToCircle(id) {
+  console.debug(id);
+  return function() {
+    if (httpRequest.readyState === 4) {
+      if (httpRequest.status === 200) {
+        circles[id].fileContent = httpRequest.responseText;
+        console.log(httpRequest.responseText);
+      } else {
+        console.log('Problem with Status: ' + httpRequest.status);
+      }
+    } else {
+      // not ready
+      console.log(id);
+      console.log('In state: ' + httpRequest.readyState);
+    }
+  };
+}
+
+circles.forEach((v, i) => {
+  httpRequest = new XMLHttpRequest();
+  httpRequest.onload = addFileToCircle(i);
+  httpRequest.open("GET", "./public/test" + i + ".txt", false);
+  httpRequest.send();
+});
+
+
+
+console.log(circles);
+
+
+
+
+
 var state = {};
 
 state.intersectionArea = {
   display: false,
+  clickedCircles: [],
+};
+
+state.fileArea = {
+  content: "",
 };
 
 
@@ -85,13 +124,15 @@ function renderBoard() {
     //      'selected' also upddated in #toggleSelected
 
     // enter
+    // TODO somehow stop 'mouseup' event fired by drag event from triggering 'handleCircleClick'
     circle.enter().append('circle')
         .attr("r", settings.radius)
         .attr("cx", function(d){return d.x;})
         .attr("cy", function(d){return d.y;})
         .attr('selected', function(d){return d.selected;})
         .on('click', handleCircleClick)
-        .on('mousedown', stopBubbleUp)
+        .on('mousedown', stopBubbleUp) // stop 'click' from being triggered while dragging
+ 
         .call(dragBehavior);
 
     // exit
@@ -102,6 +143,10 @@ function renderBoard() {
 function renderIntersectionArea(state) {
   var pathString = constructIntersectionPath(state.clickedCircles);
 
+  if (pathString === '') {
+    state.display = false;
+  }
+
   var path = document.querySelector('.intersectArea');
   path.setAttribute('stroke', 'red');
   path.setAttribute('stroke-width', '1');
@@ -110,8 +155,8 @@ function renderIntersectionArea(state) {
   path.style.display = (state.display) ? 'inline' : 'none';
 }
 
-function renderFileResult(content) {
-  views.sel_file_content.value = content;
+function renderFileResult(state) {
+  views.sel_file_content.value = state.content;
 }
 
 // calculate the intersection of list of files
@@ -128,7 +173,8 @@ function handleCircleClick(circle) {
   console.log(circle);
   var overlaps = getOverlaps(circle, circles);
   if (overlaps.length === 0) {
-    renderFileResult(circle.fileContent);    
+    state.fileArea.content = circle.fileContent;
+    renderFileResult(state.fileArea);    
     console.debug('all content');
     return;
   }
@@ -154,7 +200,8 @@ function handleCircleClick(circle) {
     result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
     console.log('calc intersect');
   }
-  renderFileResult(result);
+  state.fileArea.content = result;
+  renderFileResult(state.fileArea);
 }
 
 
@@ -183,7 +230,8 @@ function toggleSelected(d) {
     d3.select(this)
         .classed('selected', d.selected = !d.selected);
     if (d.selected && d.fileContent !== undefined) {
-        renderFileResult(d.fileContent);    
+        state.fileArea.content = d.fileContent;
+        renderFileResult(state.fileArea);
     } else {
         views.sel_file_content.value = '';
     }
@@ -196,7 +244,12 @@ function dragmove(d) {
         .attr("cy", d.y = Math.max(0, Math.min(settings.height, d3.event.y)));
     renderBoard();
 
-    renderIntersectionArea(state.intersectionArea);
+    if (state.intersectionArea.display) {
+      renderIntersectionArea(state.intersectionArea);
+    }
+
+    // TODO handle case where we drag circle out of an inteserction area.
+    // Should change state.display = false;
 }
 
 var dragBehavior = d3.behavior.drag()

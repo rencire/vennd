@@ -1,14 +1,20 @@
 ## Tasks
 
 # Current
-- highlight selected area of venn diagram 
+x highlight selected area of venn diagram 
   - NOTE: only consider simplest case: 2 or more circles intersect, click on intersect area. For future, consider case when a different, 'clicked' circle overlaps intersection area.
 
   x get all intersection points of 'clicked' circles with each other
-  - start from midpoint in group of intersections
-  - going clockwise, find common parentCircle in each pair of points.
-  - generate arcs with p1, p2, and parentCircle's radius.
-  - draw path with arcs data.
+  x start from midpoint in group of intersections
+  x going clockwise, find common parentCircle in each pair of points.
+  x generate arcs with p1, p2, and parentCircle's radius.
+  x draw path with arcs data.
+
+- Refactor spaghetti code
+- Migrate away from using d3
+- keep selected area highlighted when moving circles around
+- unselect area when clicking the section again
+- have multiple selected sections
 
 # Future 
 - make droplayer prettier
