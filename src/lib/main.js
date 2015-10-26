@@ -20,6 +20,8 @@ var settings = {
 // forget this intialize page
 function initializePage() {
     // track width/height of svg for circle bounds
+  
+
     var drawboard = d3.select('.drawboard');
 
     settings.width = parseInt(drawboard.style('width'));
@@ -38,7 +40,7 @@ function initializePage() {
     
     // bind buttons
     document.querySelector('.clear-btn').addEventListener('click', clearBoard, false);
-    document.querySelector('.rm-sel-btn').addEventListener('click', removeSelected, false);
+    document.querySelector('.rm-sel-btn').addEventListener('click', removeCircle, false);
 
     // bind error msg click
     views.dragzone.addEventListener('click', function(e) {
@@ -53,15 +55,34 @@ function initializePage() {
 }
 
 // State
-var circles = [
+var Models = {
+  Board: {},
+  Output: {}
+};
+
+Models.Board.intersectionArea = {
+  display: false,
+  clickedCircles: [],
+};
+
+Models.Board.fileArea = {
+  content: "",
+};
+
+Models.Board.circles = [
   {id: 0, x: 200, y: 200, radius: settings.radius, selected: false, fileContent: null},
   {id: 1, x: 400, y: 300, radius: settings.radius, selected: false, fileContent: null}
 ];
 
+Models.Output.content = "";
+
+
+
+
 // Init load file for testing
 var httpRequest;
 
-function addFileToCircle(id) {
+function addFileToCircle(id, circles) {
   console.debug(id);
   return function() {
     if (httpRequest.readyState === 4) {
@@ -79,31 +100,12 @@ function addFileToCircle(id) {
   };
 }
 
-circles.forEach((v, i) => {
+Models.Board.circles.forEach((v, i) => {
   httpRequest = new XMLHttpRequest();
-  httpRequest.onload = addFileToCircle(i);
+  httpRequest.onload = addFileToCircle(i, Models.Board.circles);
   httpRequest.open("GET", "./public/test" + i + ".txt", false);
   httpRequest.send();
 });
-
-
-
-console.log(circles);
-
-
-
-
-
-var state = {};
-
-state.intersectionArea = {
-  display: false,
-  clickedCircles: [],
-};
-
-state.fileArea = {
-  content: "",
-};
 
 
 // State functions
@@ -116,7 +118,7 @@ state.fileArea = {
 // }
 
 // TODO break this up into separate operations if needed (update, enter, exit)
-function renderBoard() {
+function renderBoard(circles) {
     var circle = views.drawboard.selectAll('circle').data(circles, function(d){return d.id;});
 
     // update
@@ -140,11 +142,12 @@ function renderBoard() {
 }
 
 
-function renderIntersectionArea(state) {
-  var pathString = constructIntersectionPath(state.clickedCircles);
+// Pass in Models.Board.intersectionArea
+function renderIntersectionArea(intArea) {
+  var pathString = constructIntersectionPath(intArea.clickedCircles);
 
   if (pathString === '') {
-    state.display = false;
+    intArea.display = false;
   }
 
   var path = document.querySelector('.intersectArea');
@@ -152,11 +155,12 @@ function renderIntersectionArea(state) {
   path.setAttribute('stroke-width', '1');
   path.setAttribute('fill', 'red');
   path.setAttribute('d', pathString);
-  path.style.display = (state.display) ? 'inline' : 'none';
+  path.style.display = (intArea.display) ? 'inline' : 'none';
 }
 
-function renderFileResult(state) {
-  views.sel_file_content.value = state.content;
+// Pass in Models.Board.Output
+function renderFileResult(output) {
+  views.sel_file_content.value = output.content;
 }
 
 // calculate the intersection of list of files
@@ -170,11 +174,11 @@ function renderFileResult(state) {
 function handleCircleClick(circle) {
   var point = d3.mouse(this);
     
-  console.log(circle);
-  var overlaps = getOverlaps(circle, circles);
+  // console.log(circle);
+  var overlaps = getOverlaps(circle, Models.Board.circles);
   if (overlaps.length === 0) {
-    state.fileArea.content = circle.fileContent;
-    renderFileResult(state.fileArea);    
+    Models.Output.content = circle.fileContent;
+    renderFileResult(Models.Output);    
     console.debug('all content');
     return;
   }
@@ -185,23 +189,23 @@ function handleCircleClick(circle) {
   if (clickedOverlaps.length === 0)  {
     var overlapsFiles = overlaps.map(function(ele) {return ele.fileContent;});
     result = calcDifference(circle.fileContent, overlapsFiles);
-    console.log('calc diff');
+    console.debug('calc diff');
   } else {
     var clickedCircles = clickedOverlaps.concat([circle]);
 
-    state.intersectionArea.display = true;
-    state.intersectionArea.clickedCircles = clickedCircles;
+    Models.Board.intersectionArea.display = true;
+    Models.Board.intersectionArea.clickedCircles = clickedCircles;
 
-    renderIntersectionArea(state.intersectionArea);
+    renderIntersectionArea(Models.Board.intersectionArea);
     console.log('>>> Render intersection area...');
     console.log('<<< Done Rendering interseciton area');
 
     var clickedOverlapsFiles = clickedOverlaps.map(function(ele){return ele.fileContent;});
     result = calcIntersection(clickedOverlapsFiles.concat([circle.fileContent]));
-    console.log('calc intersect');
+    console.debug('calc intersect');
   }
-  state.fileArea.content = result;
-  renderFileResult(state.fileArea);
+  Models.Output.content = result;
+  renderFileResult(Models.Output);
 }
 
 
@@ -230,8 +234,8 @@ function toggleSelected(d) {
     d3.select(this)
         .classed('selected', d.selected = !d.selected);
     if (d.selected && d.fileContent !== undefined) {
-        state.fileArea.content = d.fileContent;
-        renderFileResult(state.fileArea);
+        Models.Output.content = d.fileContent;
+        renderFileResult(Models.Output);
     } else {
         views.sel_file_content.value = '';
     }
@@ -242,14 +246,14 @@ function dragmove(d) {
     d3.select(this)
         .attr("cx", d.x = Math.max(0, Math.min(settings.width, d3.event.x)))
         .attr("cy", d.y = Math.max(0, Math.min(settings.height, d3.event.y)));
-    renderBoard();
+    renderBoard(Models.Board.circles);
 
-    if (state.intersectionArea.display) {
-      renderIntersectionArea(state.intersectionArea);
+    if (Models.Board.intersectionArea.display) {
+      renderIntersectionArea(Models.Board.intersectionArea);
     }
 
     // TODO handle case where we drag circle out of an inteserction area.
-    // Should change state.display = false;
+    // Should change Models.Board.intersectionArea.display = false;
 }
 
 var dragBehavior = d3.behavior.drag()
@@ -264,21 +268,23 @@ var dragBehavior = d3.behavior.drag()
 
 
 
-function addCircle(file) {
+// Dispatcher will pass in model to 'action'
+function addCircle(file, board) {
     var coord;
     var circle;
     if (file) {
         // generate random coords
-        var point = generateRandomValidPoint(settings.width, settings.height, circles);
+        var point = generateRandomValidPoint(settings.width, settings.height, board.circles);
 
         var reader = new FileReader();
         reader.onload = function(e) { 
+          // adding circle to 'circles' model
           circle = {id: settings.id_cnt, x: point.x, y: point.y, radius: settings.radius, selected: false, fileContent: e.target.result};
-          circles.push(circle);
+          board.circles.push(circle);
           //TODO Q: How to drag a shape after creating it?
           // A: don't implement this feature for now...
           settings.id_cnt += 1;
-          renderBoard();
+          renderBoard(board.circles);
         }; 
         reader.readAsText(file);
 
@@ -293,35 +299,37 @@ function addCircle(file) {
             console.log('ERROR: circles out of bounds.') ;
             return;
         }
-        if (!isFreeArea({x:circle.x, y:circle.y}, circles)) {
+        if (!isFreeArea({x:circle.x, y:circle.y}, board.circles)) {
             // This block will never execute from UI because 'click' event handlers for 'circles' will stopDefaultPropagation for parent 'click' event handlers.
             // Still useful if people are messing with the console to add circles.
             console.log("ERROR: Circle already exists in that spot.");
             return;
         }
 
-        circles.push(circle);
+        board.circles.push(circle);
           console.log(
             'after no file push'
           );
         //TODO Q: How to drag a shape after creating it?
         // A: don't implement this feature for now...
         settings.id_cnt += 1;
-        renderBoard();
+        renderBoard(board.circles);
     }
 }
 
-function removeSelected() {
-    circles = circles.filter(function(d){
+function removeCircle() {
+    var board = Models.Board;
+    board.circles = board.circles.filter(function(d){
         return !d.selected;
     }); 
-    renderBoard();
+    renderBoard(board.circles);
     views.sel_file_content.value = '';
 }
 
 function clearBoard() {
-    circles = [];
-    renderBoard();
+    var board = Models.Board;
+    board.circles = [];
+    renderBoard(board.circles);
     views.sel_file_content.value = '';
 }
 
@@ -340,6 +348,7 @@ function renderCtrMsg(msg) {
 // Files
 function handleFiles(files) {
     console.log('handling files..');
+
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
         var imageType = /^text\//;
@@ -348,7 +357,8 @@ function handleFiles(files) {
             renderCtrMsg('File type needs to be Text');
             continue;
         }
-        addCircle(file);
+        // TODO figure out a better way to pass the Board model
+        addCircle(file, Models.Board);
           console.log(
             'hi'
           );
@@ -425,4 +435,4 @@ function containsFiles(e) {
 
 
 initializePage();
-renderBoard();
+renderBoard(Models.Board.circles);
