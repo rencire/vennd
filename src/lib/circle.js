@@ -1,8 +1,12 @@
+/*
+ * Eric Ren 2016
+ *
+ * Simple library for implementing venn diagram functionality.
+ */
+
 'use strict';
 
 import {getRandomInt, isEqual} from './helpers';
-
-
 
 
 /*
