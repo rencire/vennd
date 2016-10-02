@@ -1,6 +1,6 @@
 #Vennd
 
-This a personal side project for learning the basics of manipulating shapes with D3 and javascript, along with learning the HTML File api.
+This a personal side project for learning the basics of manipulating shapes with D3 and javascript, along with exploring the HTML File api.
 
 ##Features
 - Drag and drop multiples files to play around with the venn diagram shapes.  By selecting an interseciton, we can see the common lines in each file
